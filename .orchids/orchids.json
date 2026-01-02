@@ -1,0 +1,9 @@
+{
+  "projectId": "03b1e188-0ce6-4cdc-8c30-86f3fb4e0b3f",
+  "createdAt": 1767365272883,
+  "startupCommands": [
+    "cd backend && python -m uvicorn app.main:app --reload --port 8000",
+    "cd frontend && npx vite",
+    "streamlit run streamlit_app.py --server.port 8501"
+  ]
+}

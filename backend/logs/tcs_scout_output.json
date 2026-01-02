@@ -1,0 +1,39 @@
+{
+    "financials": {
+        "source": "YahooQuery (Resilient)",
+        "symbol": "TCS.NS",
+        "current_price": 3206.2,
+        "currency": "USD",
+        "pe_ratio": 23.455994,
+        "forward_pe": 20.997576,
+        "peg_ratio": null,
+        "price_to_book": 10.901031,
+        "market_cap": "11600.31B",
+        "profit_margins": 0.19186,
+        "return_on_equity": 0.47355998,
+        "debt_to_equity": 10.173,
+        "free_cash_flow": 392652488704,
+        "sector": "Technology",
+        "summary": "Tata Consultancy Services Limited provides information technology (IT) and IT enabled services in the Americas, Europe, India, and internationally. The company provides TCS ADD, a suite of AI powered life sciences platforms; TCS BaNCS, a financial services platform; TCS BFSI Platforms, a cloud-native, as-a-service digital ecosystem for insurers and financial firms; TCS Chroma, a cloud-based human resource management system platform; TCS Customer Intelligence & Insights, an AI-driven customer analytics and real-time CDP solution; TCS ERP on Cloud, an SAP platform as a service; ignio, a cognitiv..."
+    },
+    "technicals": {
+        "current_price": 3206.2,
+        "sma_50": 3152.23,
+        "sma_200": 3242.96,
+        "trend_signal": "Downtrend (Death Cross active)",
+        "rsi_14": 52.24,
+        "rsi_status": "Neutral",
+        "volatility_annualized": "19.83%"
+    },
+    "macro": {
+        "source": "YahooQuery (Macro)",
+        "timestamp": "Real-time",
+        "interest_rate_proxy": 4.163,
+        "interest_rate_proxy_symbol": "^TNX",
+        "volatility_index": 14.95,
+        "volatility_index_symbol": "^VIX",
+        "market_index": 26129.6,
+        "market_index_symbol": "^NSEI"
+    },
+    "news": []
+}

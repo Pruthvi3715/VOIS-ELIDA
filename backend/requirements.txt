@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+requests
+pandas
+langchain
+langchain-openai
+chromadb
+python-dotenv
+sentence-transformers
+yfinance
+openai
+beautifulsoup4
