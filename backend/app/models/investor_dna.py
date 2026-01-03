@@ -120,6 +120,16 @@ class InvestorDNA(BaseModel):
         default=False,
         description="Prefer oversold stocks (RSI < 30)"
     )
+
+    # Fields matching DB Model (Backwards Compatibility/Expansion)
+    time_horizon: int = Field(default=5, description="Investment horizon in years")
+    investment_goals: List[str] = Field(default=["growth"], description="Investment goals")
+    sectors: List[str] = Field(default=[], description="Preferred sectors")
+    max_drawdown_tolerance: float = Field(default=20.0, description="Max drawdown tolerance %")
+    min_position_size: float = Field(default=1000.0, description="Min position size")
+    max_position_size: float = Field(default=10000.0, description="Max position size")
+    esg_preference: str = Field(default="neutral", description="ESG preference")
+    liquidity_requirement: str = Field(default="medium", description="Liquidity requirement")
     
     def get_excluded_sectors(self) -> List[str]:
         """Get list of excluded sectors based on ethical filters."""

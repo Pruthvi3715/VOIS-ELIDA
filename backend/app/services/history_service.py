@@ -1,83 +1,66 @@
-
-import json
-import os
-import uuid
+from sqlalchemy.orm import Session
+from app.models.db_models import AnalysisHistory
 from datetime import datetime
-from typing import Dict, List, Optional
-from pathlib import Path
+from typing import List, Dict, Optional
 
 class HistoryService:
-    def __init__(self, data_file: str = "data/history.json"):
-        self.data_file = Path(data_file)
-        self._ensure_file()
-
-    def _ensure_file(self):
-        """Ensure data file and directory exist."""
-        if not self.data_file.parent.exists():
-            self.data_file.parent.mkdir(parents=True, exist_ok=True)
-        if not self.data_file.exists():
-            with open(self.data_file, "w") as f:
-                json.dump([], f)
-
-    def _read_data(self) -> List[Dict]:
-        """Read all history data."""
-        try:
-            with open(self.data_file, "r") as f:
-                return json.load(f)
-        except Exception:
-            return []
-
-    def _write_data(self, data: List[Dict]):
-        """Write data to history file."""
-        with open(self.data_file, "w") as f:
-            json.dump(data, f, indent=2)
-
-    def save_entry(self, user_id: str, query_type: str, query: str, result: Dict) -> str:
+    def save_entry(self, db: Session, user_id: int, query_type: str, query: str, result: Dict) -> int:
         """
         Save a new history entry.
         query_type: 'analysis' | 'search'
         """
-        entry_id = str(uuid.uuid4())
-        entry = {
-            "id": entry_id,
-            "user_id": user_id,
-            "type": query_type,
-            "query": query,
-            "timestamp": datetime.utcnow().isoformat(),
-            "result": result
-        }
-        
-        history = self._read_data()
-        history.insert(0, entry) # Prepend to keep latest first
-        
-        # Limit history size per user/file (optional, keep simple for now)
-        if len(history) > 1000:
-            history = history[:1000]
-            
-        self._write_data(history)
-        return entry_id
+        entry = AnalysisHistory(
+            user_id=user_id,
+            query_type=query_type,
+            query=query,
+            result=result,
+            timestamp=datetime.utcnow()
+        )
+        db.add(entry)
+        db.commit()
+        db.refresh(entry)
+        return entry.id
 
-    def get_user_history(self, user_id: str, limit: int = 20) -> List[Dict]:
+    def get_user_history(self, user_id: int, db: Session, limit: int = 20) -> List[Dict]:
         """Get summary history for a user."""
-        history = self._read_data()
-        user_history = [
+        history = db.query(AnalysisHistory)\
+            .filter(AnalysisHistory.user_id == user_id)\
+            .order_by(AnalysisHistory.timestamp.desc())\
+            .limit(limit)\
+            .all()
+            
+        return [
             {
-                "id": item["id"],
-                "type": item["type"],
-                "query": item["query"],
-                "timestamp": item["timestamp"]
+                "id": str(h.id),
+                "type": h.query_type,
+                "query": h.query,
+                "timestamp": h.timestamp.isoformat()
             }
-            for item in history if item["user_id"] == user_id
+            for h in history
         ]
-        return user_history[:limit]
 
-    def get_entry(self, entry_id: str) -> Optional[Dict]:
+    def get_entry(self, entry_id: int, db: Session) -> Optional[Dict]:
         """Get full details of a specific entry."""
-        history = self._read_data()
-        for item in history:
-            if item["id"] == entry_id:
-                return item
+        item = db.query(AnalysisHistory).filter(AnalysisHistory.id == entry_id).first()
+        if item:
+            return {
+                "id": str(item.id),
+                "user_id": str(item.user_id),
+                "type": item.query_type,
+                "query": item.query,
+                "timestamp": item.timestamp.isoformat(),
+                "result": item.result
+            }
         return None
+
+    def delete_entry(self, entry_id: int, db: Session) -> bool:
+        """Delete a history entry."""
+        item = db.query(AnalysisHistory).filter(AnalysisHistory.id == entry_id).first()
+        if item:
+            db.delete(item)
+            db.commit()
+            return True
+        return False
 
 # Singleton instance
 history_service = HistoryService()

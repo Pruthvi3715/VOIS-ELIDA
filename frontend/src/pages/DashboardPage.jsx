@@ -28,10 +28,10 @@ function DashboardPage() {
 
     const fetchRecentHistory = async () => {
         try {
-            const userId = getUserId();
-            const response = await fetch(`${API_BASE_URL}/api/history/${userId}`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/history?limit=5`);
             const data = await response.json();
-            setRecentAnalyses((Array.isArray(data) ? data : []).slice(0, 5));
+            const entries = data.entries || [];
+            setRecentAnalyses(entries.slice(0, 5));
         } catch (error) {
             console.log('No recent history', error);
         }

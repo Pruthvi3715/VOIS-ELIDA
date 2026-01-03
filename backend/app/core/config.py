@@ -1,19 +1,28 @@
-from typing import Optional
+from typing import Optional, Literal
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Financial Decision Support System"
+    PROJECT_NAME: str = "ELIDA - Financial Decision Support System"
     API_V1_STR: str = "/api/v1"
     
-    # Placeholder for API Keys
-    OPENAI_API_KEY: str = ""
-    FRED_API_KEY: str = ""
-    GEMINI_API_KEY: Optional[str] = None
+    # API Keys (Required)
+    GEMINI_API_KEY: str
+    FRED_API_KEY: str
     
-    LLM_PROVIDER: str = "auto"
+    # LLM Configuration
+    LLM_PROVIDER: Literal["auto", "ollama", "gemini"] = "auto"
     GEMINI_MODEL: str = "gemini-2.0-flash"
-    OLLAMA_MODEL: str = "llama3.1:latest"
+    OLLAMA_MODEL: str = "qwen2.5:7b"
+    OLLAMA_URL: str = "http://localhost:11434/api/generate"
+    
+    # Database
+    DATABASE_URL: str = "sqlite:///./elida.db"
+    
+    # JWT Authentication
+    JWT_SECRET: str = "dev-secret-change-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRATION_HOURS: int = 24
 
-    model_config = {"env_file": ".env", "extra": "ignore"}
+    model_config = {"env_file": ".env", "extra": "ignore", "case_sensitive": True}
 
 settings = Settings()

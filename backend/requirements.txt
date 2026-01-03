@@ -1,14 +1,27 @@
 fastapi
-uvicorn
-pydantic
+uvicorn[standard]
+pydantic>=2.0
 pydantic-settings
-requests
+python-dotenv
+chromadb
 pandas
+yahooquery
+yfinance
+google-generativeai
+wikipedia
+beautifulsoup4
+requests
+lxml
+numpy
+sentence-transformers
 langchain
 langchain-openai
-chromadb
-python-dotenv
-sentence-transformers
-yfinance
-openai
-beautifulsoup4
+
+# Database
+sqlalchemy>=2.0.0
+alembic
+
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart

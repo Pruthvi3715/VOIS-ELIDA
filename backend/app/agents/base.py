@@ -91,6 +91,31 @@ class BaseAgent:
             print(f"[{self.name}] ⚠️ Ollama error: {e}")
         return None
 
+    def _call_gemini(self, prompt: str, max_retries: int = 3) -> Optional[str]:
+        """Call Gemini API with retries."""
+        if not self.gemini_model:
+            return None
+            
+        import time
+        for attempt in range(max_retries):
+            try:
+                # Synchronous call for now
+                response = self.gemini_model.generate_content(prompt)
+                if response.text:
+                    return response.text
+            except Exception as e:
+                error_str = str(e)
+                if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+                    wait_time = (2 ** attempt) * 2
+                    print(f"[{self.name}] ⚠️ Gemini Rate Limit. Retry {attempt+1}/{max_retries} in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"[{self.name}] ⚠️ Gemini Error: {e}")
+                    # Don't retry on non-transient errors usually, but loop continues
+                    if attempt == max_retries - 1:
+                        return None
+        return None
+
     def call_llm(
         self, 
         prompt: str, 
@@ -100,8 +125,7 @@ class BaseAgent:
         max_retries: int = 3
     ) -> str:
         """
-        Calls LLM based on LLM_PROVIDER setting.
-        Returns response and tracks token usage.
+        Calls LLM with fallback strategy: Ollama -> Gemini -> Rule-based Fallback.
         """
         full_prompt = f"System: {system_prompt}\n\nUser: {prompt}"
         input_tokens = self._estimate_tokens(full_prompt)
@@ -109,48 +133,32 @@ class BaseAgent:
         result = None
         provider_used = None
         
-        # Try Ollama first (if enabled)
+        # 1. Try Ollama (if configured)
         if self.use_ollama:
-            print(f"[{self.name}] 🦙 Calling Ollama ({self.OLLAMA_MODEL})... (~{input_tokens} tokens)")
+            print(f"[{self.name}] 🦙 Calling Ollama ({self.OLLAMA_MODEL})...")
             result = self._call_ollama(full_prompt)
             if result:
                 provider_used = "ollama"
-                print(f"[{self.name}] ✅ Ollama Response: ~{self._estimate_tokens(result)} tokens")
-            elif self.llm_provider == "ollama":
-                # Ollama-only mode but failed
-                print(f"[{self.name}] ❌ Ollama failed (no fallback in ollama-only mode)")
+                print(f"[{self.name}] ✅ Ollama Response")
             else:
-                print(f"[{self.name}] ⚠️ Ollama failed, trying Gemini...")
-        
-        # Try Gemini (if enabled and Ollama didn't succeed)
-        if not result and self.use_gemini and self.gemini_model:
-            try:
-                print(f"[{self.name}] 🚀 Calling Gemini ({self.GEMINI_MODEL})... (~{input_tokens} tokens)")
-                
-                import time
-                for attempt in range(max_retries):
-                    try:
-                        response = self.gemini_model.generate_content(full_prompt)
-                        result = response.text
-                        provider_used = "gemini"
-                        print(f"[{self.name}] ✅ Gemini Response: ~{self._estimate_tokens(result)} tokens")
-                        break
-                    except Exception as e:
-                        error_str = str(e)
-                        if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
-                            wait_time = (2 ** attempt) * 3
-                            print(f"[{self.name}] ⚠️ Rate Limit. Retry {attempt+1}/{max_retries} in {wait_time}s...")
-                            time.sleep(wait_time)
-                        else:
-                            raise e
-                            
-                if not result:
-                    raise Exception(f"Max retries ({max_retries}) exceeded for Gemini API")
+                print(f"[{self.name}] ⚠️ Ollama failed/empty.")
 
-            except Exception as e:
-                print(f"[{self.name}] ❌ Gemini Error: {e}. Using fallback.")
-        
-        # Track token usage
+        # 2. Try Gemini (if enabled and no result yet)
+        if not result and self.use_gemini:
+            # Only log if we tried Ollama and it failed, or if Gemini is first choice
+            if self.use_ollama: 
+                print(f"[{self.name}] 🔄 Falling back to Gemini...")
+            else:
+                print(f"[{self.name}] 🚀 Calling Gemini ({self.GEMINI_MODEL})...")
+                
+            result = self._call_gemini(full_prompt, max_retries)
+            if result:
+                provider_used = "gemini"
+                print(f"[{self.name}] ✅ Gemini Response")
+            else:
+                print(f"[{self.name}] ❌ Gemini Failed.")
+
+        # 3. Track Usage & Return
         if result:
             output_tokens = self._estimate_tokens(result)
             BaseAgent._token_usage[self.name]["input"] += input_tokens
@@ -158,11 +166,13 @@ class BaseAgent:
             BaseAgent._token_usage[self.name]["calls"] += 1
             return result
         
-        # Execute fallback
+        # 4. Final Fallback
         if fallback_func:
             print(f"[{self.name}] 🔄 Using rule-based fallback")
             return fallback_func(fallback_args)
-        return "[Error] Analysis unavailable - No LLM available and no fallback logic."
+            
+        # 5. No recourse
+        return "[Error] Analysis unavailable - LLM generation failed and no fallback provided."
     
     @classmethod
     def get_token_usage(cls) -> Dict[str, Any]:

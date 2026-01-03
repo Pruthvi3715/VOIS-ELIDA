@@ -35,42 +35,90 @@ class QuantAgent(BaseAgent):
         context_str = "\n".join([str(item.get("content")) for item in financial_data])
         
         prompt = f"""
-        You are the Quantitative Analysis Agent.
+        You are the Quantitative Analysis Agent - the most rigorous numbers analyst in the financial industry.
 
-        ROLE:
-        Evaluate the asset strictly using numerical and financial metrics. Provide a DEEP, DATA-DRIVEN analysis.
+        CRITICAL ROLE:
+        You MUST provide DEEP, DATA-DRIVEN analysis with EXPLICIT CITATIONS for every claim.
 
-        METRICS TO ANALYZE:
-        - Valuation: P/E, Forward P/E, PEG Ratio, Price-to-Book (Cite exact values)
-        - Profitability: Profit Margins, Return on Equity (Compare to sector norms)
-        - Health: Debt-to-Equity, Free Cash Flow (Assess solvency)
-        - Size: Market Capitalization
+        MANDATORY ANALYSIS STRUCTURE:
+        For EACH metric, you MUST include:
+        1. The EXACT numerical value from the context
+        2. Comparison to industry benchmarks or historical norms
+        3. Percentage deviation from benchmarks
+        4. Impact on final score (+X points or -X points)
+
+        METRICS TO ANALYZE (cite exact values):
+        - Valuation: P/E Ratio, Forward P/E, PEG Ratio, Price-to-Book
+        - Profitability: Profit Margins, Return on Equity, Return on Assets
+        - Financial Health: Debt-to-Equity, Current Ratio, Free Cash Flow
+        - Growth: Revenue Growth, Earnings Growth
+        - Market Position: Market Capitalization, Sector, Industry
 
         OUTPUT FORMAT (STRICT JSON):
         {{
             "score": <0-100>,
             "confidence": <0-100 based on data completeness>,
-            "metrics_used": ["list of metrics with values, e.g., 'P/E (22.5)'"],
-            "metrics_values": {{"metric": value}},
-            "strengths": ["Detailed sentence explaining strength with data"],
-            "weaknesses": ["Detailed sentence explaining weakness with data"],
-            "reasoning": "COMPREHENSIVE JUSTIFICATION: Write 3-4 detailed paragraphs. Explain EXACTLY how the score was calculated. CITE EVERY NUMBER used. Compare metrics to benchmarks. Do not use generic phrases like 'good valuation' without proof."
+            "metrics_used": ["Format: 'P/E: 23.5', 'ROE: 18.2%', 'Debt/Equity: 45.3'"],
+            "metrics_values": {{"pe_ratio": 23.5, "roe": 0.182, "debt_to_equity": 45.3}},
+            "strengths": [
+                "MUST cite specific numbers. Example: 'ROE of 22.5% exceeds industry average of 15%, indicating superior capital efficiency and placing the company in the top quartile of its sector.'"
+            ],
+            "weaknesses": [
+                "MUST cite specific numbers. Example: 'P/E ratio of 32.1 is 45% above the sector median of 22.0, suggesting potential overvaluation unless justified by exceptional growth prospects.'"
+            ],
+            "reasoning": '''
+            WRITE 4-5 DETAILED PARAGRAPHS with this EXACT structure:
+            
+            Paragraph 1 - Valuation Assessment:
+            - State each valuation metric with exact value
+            - Compare to benchmarks (e.g., "P/E of X vs sector average of Y")
+            - Calculate percentage premium/discount
+            - Explain what this means for the stock
+            
+            Paragraph 2 - Profitability & Efficiency:
+            - Cite profit margins, ROE, ROA with exact percentages
+            - Compare to industry standards
+            - Assess trends (improving/declining)
+            - Explain competitive advantages or disadvantages
+            
+            Paragraph 3 - Financial Health:
+            - State Debt-to-Equity ratio
+            - Analyze leverage relative to industry norms
+            - Assess free cash flow and liquidity
+            - Discuss solvency risks or strengths
+            
+            Paragraph 4 - Growth & Market Position:
+            - Cite revenue and earnings growth rates
+            - Compare to historical averages and peer growth
+            - Analyze market cap and competitive position
+            - Assess scalability and market opportunities
+            
+            Paragraph 5 - Score Justification:
+            - Explain EXACTLY why the score is X and not X+20 or X-20
+            - List each factor contributing to score
+            - Provide weighted breakdown (e.g., "Valuation contributes -10 points due to elevated P/E, while profitability adds +25 points due to exceptional margins")
+            '''
         }}
 
-        SCORING GUIDELINES:
-        - 80-100: Exceptional fundamentals (e.g., PEG < 1, ROE > 20%)
-        - 60-79: Solid but imperfect (e.g., fair valuation, stable growth)
-        - 40-59: Mixed signals (e.g., cheap but low growth, or expensive but high growth)
-        - 20-39: Fundamental flaws (e.g., declining margins, high debt)
-        - 0-19: Distress signals
+        STRICT SCORING GUIDELINES:
+        - 85-100: Exceptional fundamentals across ALL metrics (e.g., PEG<1.0, ROE>20%, D/E<30, Margins>15%)
+        - 70-84: Strong fundamentals with 1-2 minor weaknesses
+        - 55-69: Above average, but notable concerns (e.g., high valuation or moderate debt)
+        - 40-54: Mixed signals - some good metrics offset by significant concerns
+        - 25-39: More weaknesses than strengths - fundamental issues present
+        - 0-24: Distress or severe fundamental deterioration
 
-        RULES:
-        1. NO GENERIC OUPUT. Bad: "Good P/E". Good: "P/E of 12.5 is 40% below sector average of 20, indicating undervaluation."
-        2. JUSTIFY THE SCORE. If score is 60, explain why it's not 80 (what's missing?) and why it's not 40 (what's good?).
-        3. CITE SOURCES/VALUES. Use the data provided in context.
+        ABSOLUTE REQUIREMENTS:
+        ❌ FORBIDDEN: "Good P/E", "Strong fundamentals", "Attractive valuation" WITHOUT NUMBERS
+        ✅ REQUIRED: "P/E of 12.5 is 40% below sector average of 20.8, indicating undervaluation"
+        
+        ❌ FORBIDDEN: "The company is profitable"
+        ✅ REQUIRED: "Net profit margin of 18.2% exceeds the sector median of 12.5%, ranking in the 75th percentile"
+        
+        If ANY metric is missing from context, explicitly state "[Metric X] not available" and reduce confidence by 10 points per missing critical metric.
 
         CONTEXT (Retrieved from RAG):
-        {context_str if context_str else "No financial data available in context."}
+        {context_str if context_str else "CRITICAL ERROR: No financial data available. Cannot perform quantitative analysis. Return score:0, confidence:0, reasoning:'No financial data provided in context.'"}
         """
         
         # Call LLM with fallback
@@ -273,12 +321,52 @@ class QuantAgent(BaseAgent):
         # Clamp score
         score = max(0, min(100, score))
         
+        # Build detailed reasoning
+        reasoning_paragraphs = []
+        
+        # Para 1: Valuation
+        if any(k in metrics_values for k in ["pe_ratio", "forward_pe", "peg_ratio"]):
+            valuation_text = "**Valuation Analysis:** "
+            if "pe_ratio" in metrics_values:
+                pe = metrics_values["pe_ratio"]
+                valuation_text += f"The current P/E ratio of {pe:.2f} "
+                if pe < 15:
+                    valuation_text += f"is below my threshold of 15, suggesting the stock trades at {((15-pe)/15*100):.1f}% discount to fair value based on earnings. "
+                elif pe > 30:
+                    valuation_text += f"exceeds reasonable levels (>30), indicating a {((pe-30)/30*100):.1f}% premium that may not be justified without exceptional growth. "
+                else:
+                    valuation_text += "falls within the fair range of 15-30, indicating market pricing is reasonable relative to earnings. "
+            reasoning_paragraphs.append(valuation_text)
+        
+        # Para 2: Profitability
+        if any(k in metrics_values for k in ["profit_margins", "return_on_equity"]):
+            profit_text = "**Profitability Assessment:** "
+            if "profit_margins" in metrics_values:
+                margin = metrics_values["profit_margins"]
+                profit_text += f"Net profit margin of {margin:.1%} "
+                if margin > 0.15:
+                    profit_text += f"significantly exceeds the 15% benchmark for quality companies, demonstrating pricing power and operational efficiency. "
+                elif margin < 0.05:
+                    profit_text += f"falls below the minimum 5% threshold for sustainable businesses, raising concerns about competitive positioning. "
+            reasoning_paragraphs.append(profit_text)
+        
+        # Para 3: Score justification
+        score_justification = f"**Final Score Rationale:** Starting from a baseline of 50, I applied the following adjustments: {'; '.join(adjustments)}. "
+        score_justification += f"This yields a final quantitative score of {score}/100. "
+        if weaknesses:
+            score_justification += f"Key concerns preventing a higher score include: {', '.join(weaknesses[:2])}. "
+        if strengths:
+            score_justification += f"Primary strengths supporting this score are: {', '.join(strengths[:2])}. "
+        reasoning_paragraphs.append(score_justification)
+        
+        detailed_reasoning = " ".join(reasoning_paragraphs)
+        
         # Build response
         if not metrics_used:
             return f"""[Rule-Based Fallback] No financial metrics found in RAG context.
-Score: 50
-Confidence: 20
-Reasoning: Unable to perform quantitative analysis due to missing financial data. Defaulting to neutral score."""
+Score: 30
+Confidence: 10
+Reasoning: Unable to perform quantitative analysis due to complete absence of financial data in provided context. This represents a critical data gap. Without fundamental metrics like P/E ratio, profit margins, or debt levels, I cannot assess the investment quality. Reduced score to 30 to reflect information insufficiency risk."""
         
         result = {
             "score": score,
