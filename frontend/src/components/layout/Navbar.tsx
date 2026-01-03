@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <span className="text-xl font-bold text-gradient">VOIS</span>
+                    <span className="text-xl font-bold text-gradient">ELIDA</span>
                     <span className="hidden md:inline text-xs text-secondary ml-2">AI Investment Advisor</span>
                 </div>
             </Link>

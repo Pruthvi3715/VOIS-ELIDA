@@ -49,7 +49,7 @@ const Register: React.FC = () => {
             <div className="w-full max-w-md p-8 rounded-2xl bg-surface/50 backdrop-blur-xl border border-white/10 shadow-2xl relative z-10 transition-all duration-300 hover:border-primary/30">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mb-2">Create Account</h1>
-                    <p className="text-secondary">Join VOIS to start analyzing</p>
+                    <p className="text-secondary">Join ELIDA to start analyzing</p>
                 </div>
 
                 {error && (

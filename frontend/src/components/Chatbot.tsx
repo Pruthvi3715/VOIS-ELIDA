@@ -55,8 +55,8 @@ const Chatbot: React.FC = () => {
 
     return (
         <div className={`fixed z-50 transition-all duration-300 ${isExpanded
-                ? 'bottom-0 right-0 w-full h-full md:w-[600px] md:h-[80vh] md:bottom-6 md:right-6'
-                : 'bottom-6 right-6 flex flex-col items-end gap-4'
+            ? 'bottom-0 right-0 w-full h-full md:w-[600px] md:h-[80vh] md:bottom-6 md:right-6'
+            : 'bottom-6 right-6 flex flex-col items-end gap-4'
             }`}>
             <AnimatePresence>
                 {isOpen && (
@@ -107,19 +107,19 @@ const Chatbot: React.FC = () => {
                                     className={`flex gap-4 ${msg.isBot ? '' : 'flex-row-reverse'}`}
                                 >
                                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${msg.isBot
-                                            ? 'bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30'
-                                            : 'bg-surface-light border border-glass-border'
+                                        ? 'bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30'
+                                        : 'bg-primary-600 border border-primary-500/30'
                                         }`}>
                                         {msg.isBot ? (
                                             <Sparkles className="w-4 h-4 text-primary-400" />
                                         ) : (
-                                            <User className="w-4 h-4 text-gray-400" />
+                                            <User className="w-4 h-4 text-white" />
                                         )}
                                     </div>
                                     <div className="flex flex-col gap-1 max-w-[80%]">
                                         <div className={`rounded-2xl px-5 py-3 text-[14px] leading-relaxed shadow-sm ${msg.isBot
-                                                ? 'bg-[#1a1b26] border border-white/5 text-gray-200 rounded-tl-none'
-                                                : 'bg-gradient-primary text-white rounded-tr-none shadow-glow-sm'
+                                            ? 'bg-[#1a1b26] border border-white/5 text-gray-200 rounded-tl-none'
+                                            : 'bg-gradient-primary text-white rounded-tr-none shadow-glow-sm border border-white/5'
                                             }`}>
                                             {msg.text}
                                         </div>
@@ -180,8 +180,8 @@ const Chatbot: React.FC = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsOpen(!isOpen)}
                     className={`w-16 h-16 rounded-full shadow-[0_0_20px_rgba(99,102,241,0.3)] flex items-center justify-center transition-all duration-300 border border-white/10 ${isOpen
-                            ? 'bg-[#1a1b26] text-gray-400 rotate-90 hover:text-white'
-                            : 'bg-gradient-primary text-white shadow-glow-lg'
+                        ? 'bg-[#1a1b26] text-gray-400 rotate-90 hover:text-white'
+                        : 'bg-gradient-primary text-white shadow-glow-lg'
                         }`}
                 >
                     {isOpen ? (

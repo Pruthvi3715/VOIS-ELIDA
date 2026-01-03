@@ -1,7 +1,7 @@
 # System Architecture
 
 ## High-Level Architecture
-The VOIS-ELIDA system follows a modern client-server architecture with a React frontend and a FastAPI backend, powered by a Multi-Agent System (MAS).
+The ELIDA system follows a modern client-server architecture with a React frontend and a FastAPI backend, powered by a Multi-Agent System (MAS).
 
 ```mermaid
 graph TD

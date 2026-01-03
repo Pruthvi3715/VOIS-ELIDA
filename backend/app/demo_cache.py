@@ -56,12 +56,13 @@ DEMO_ANALYSES = {
         },
         "market_data": {
             "price": 4125.50,
-            "change": 1.25,
+            "change": 1.32,
             "volume": 2450000,
             "high52w": 4450.00,
             "low52w": 3180.00,
             "pe_ratio": 28.5,
-            "market_cap": "15.2T"
+            "market_cap": "15.2T",
+            "currency": "INR"
         }
     },
     "RELIANCE.NS": {
@@ -121,12 +122,13 @@ DEMO_ANALYSES = {
         },
         "market_data": {
             "price": 2890.75,
-            "change": -0.45,
+            "change": -0.25,
             "volume": 5200000,
             "high52w": 3025.00,
             "low52w": 2220.00,
             "pe_ratio": 26.2,
-            "market_cap": "19.6T"
+            "market_cap": "19.6T",
+            "currency": "INR"
         }
     },
     "INFY.NS": {
@@ -191,7 +193,8 @@ DEMO_ANALYSES = {
             "high52w": 1980.00,
             "low52w": 1355.00,
             "pe_ratio": 24.8,
-            "market_cap": "7.7T"
+            "market_cap": "7.7T",
+            "currency": "INR"
         }
     },
     "HDFCBANK.NS": {
@@ -257,7 +260,8 @@ DEMO_ANALYSES = {
             "high52w": 1795.00,
             "low52w": 1420.00,
             "pe_ratio": 19.2,
-            "market_cap": "13.1T"
+            "market_cap": "13.1T",
+            "currency": "INR"
         }
     }
 }

@@ -1,69 +1,211 @@
-# Architecture Guide
+# ELIDA Architecture Guide
 
-## 🏗 System Overview
+## 🏗️ System Overview
 
-ELIDA relies on a **Hub-and-Spoke** architecture where a central **Orchestrator** manages data flow between the User, Data Sources, the RAG Knowledge Base, and specialized AI Agents.
+ELIDA (Enhanced Learning Investment Decision Advisor) uses a **Multi-Agent AI Architecture** with:
+- **React Frontend** for the user interface
+- **FastAPI Backend** as the orchestration layer
+- **Specialized AI Agents** for domain-specific analysis
+- **RAG Knowledge Base** for context-aware retrieval
+- **Persistent Storage** for user profiles and history
 
-## 🔄 Data Flow Diagram
+---
+
+## 🔄 High-Level Architecture
 
 ```mermaid
-graph TD
-    User[User] -->|Query| API[FastAPI Backend]
-    API -->|Intent| Router{Smart Router}
-    
-    %% Branch 1: General Knowledge
-    Router -->|General Question| Research[General Chat Service]
-    Research -->|Search| Wiki[Wikipedia/Google]
-    Research -->|Response| User
-    
-    %% Branch 2: Financial Analysis
-    Router -->|Stock Ticker| Orch[Financial Orchestrator]
-    
-    Orch -->|1. Ingest| Scout[Scout Agent]
-    Scout -->|Fetch| Yahoo[Yahoo Finance]
-    Scout -->|Store| RAG[(ChromaDB / Vector Store)]
-    
-    Orch -->|2. Retrieve Context| RAG
-    
-    Orch -->|3. Analyze| Agents
-    subgraph "Agent Swarm"
-        Quant[Quant Agent] -->|Fundamentals| RAG
-        Macro[Macro Agent] -->|Trends| RAG
-        Phil[Philosopher Agent] -->|Ethics| RAG
-        Regret[Regret Agent] -->|Risk| RAG
+flowchart TB
+    subgraph Frontend["🖥️ React Frontend"]
+        UI[Dashboard & Analysis UI]
+        Chat[Chatbot Interface]
+        Profile[User Profile]
     end
+
+    subgraph API["⚡ FastAPI Backend"]
+        Router{Smart Router}
+        Auth[JWT Auth]
+        Orch[Orchestrator]
+    end
+
+    subgraph Agents["🤖 AI Agent Swarm"]
+        Scout[🔍 Scout Agent]
+        Quant[📊 Quant Agent]
+        Macro[🌍 Macro Agent]
+        Phil[🧠 Philosopher Agent]
+        Regret[⚠️ Regret Agent]
+        Coach[🎯 Coach Agent]
+    end
+
+    subgraph Data["💾 Data Layer"]
+        RAG[(ChromaDB<br/>Vector Store)]
+        DB[(SQLite<br/>Users & History)]
+        Cache[Redis Cache]
+    end
+
+    subgraph External["🌐 External Services"]
+        Yahoo[Yahoo Finance]
+        LLM[Gemini / Ollama]
+    end
+
+    UI --> Router
+    Chat --> Router
+    Profile --> Auth
     
-    Orch -->|4. Calculate Score| MatchService[Match Score Service]
-    MatchService -->|Profile| UserDNA[Investor DNA]
+    Router -->|Stock Query| Orch
+    Router -->|General Chat| LLM
     
-    Orch -->|5. Synthesize| Coach[Coach Agent]
-    Coach -->|Verdict| User
+    Orch -->|1. Collect Data| Scout
+    Scout --> Yahoo
+    Scout -->|Store| RAG
+    
+    Orch -->|2. Analyze| Quant
+    Orch -->|2. Analyze| Macro
+    Orch -->|2. Analyze| Phil
+    Orch -->|2. Analyze| Regret
+    
+    Quant --> RAG
+    Macro --> RAG
+    Phil --> RAG
+    Regret --> RAG
+    
+    Orch -->|3. Synthesize| Coach
+    Coach --> LLM
+    Coach -->|Final Verdict| UI
+    
+    Auth --> DB
+    Orch -->|Save History| DB
+
+    style Frontend fill:#1a1a2e,stroke:#7c3aed,color:#fff
+    style API fill:#16213e,stroke:#10b981,color:#fff
+    style Agents fill:#0f3460,stroke:#f59e0b,color:#fff
+    style Data fill:#1a1a2e,stroke:#3b82f6,color:#fff
+    style External fill:#252525,stroke:#6b7280,color:#fff
 ```
 
-## 🤖 The Agents
+---
 
-Each agent has a specific persona and specialized prompt:
+## 📊 Analysis Pipeline
 
-| Agent | Role | Tools/Data |
-|-------|------|------------|
-| **Scout** | Data Ingestion | YahooQuery, yfinance. Fetches Price, P/E, News. |
-| **Quant** | Fundamental Analysis | Analyzes Balance Sheets, Profitability, Valuation. |
-| **Macro** | Market Context | Analyzes VIX, Bond Yields, Inflation Trends. |
-| **Philosopher** | Ethical Alignment | Checks against User's "Sin Stock" filters. |
-| **Regret** | Risk Simulation | Simulates worst-case scenarios (Pre-Mortem). |
-| **Coach** | Synthesis | Combines all insights into a final recommendation. |
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant F as 🖥️ Frontend
+    participant O as ⚡ Orchestrator
+    participant S as 🔍 Scout
+    participant A as 🤖 Agents
+    participant C as 🎯 Coach
+    participant D as 💾 Database
 
-## 🧬 smart Routing
+    U->>F: Enter Stock Symbol (e.g., TCS.NS)
+    F->>O: POST /analyze/{ticker}
+    
+    O->>S: Collect Market Data
+    S-->>O: Financials, News, Technicals
+    
+    par Parallel Analysis
+        O->>A: Quant Analysis
+        O->>A: Macro Analysis
+        O->>A: Philosophy Check
+        O->>A: Risk Simulation
+    end
+    
+    A-->>O: Agent Insights (Scores + Reasoning)
+    
+    O->>C: Synthesize All Insights
+    C-->>O: Final Verdict + Recommendation
+    
+    O->>D: Save to History
+    O-->>F: Complete Analysis Result
+    F-->>U: Display Dashboard
+```
 
-The system uses Regex and Keyword matching to classify intent:
-1.  **Ticker Pattern** (e.g., "TCS.NS", "AAPL"): Trigger full Financial Analysis.
-2.  **General Text** (e.g., "What is EBITDA?"): Trigger General Research (Lightweight RAG).
+---
 
-## 💾 RAG Implementation
-- **Vector Store**: ChromaDB (Transient/Persistent).
-- **Embedding**: `sentence-transformers/all-MiniLM-L6-v2`.
-- **Strategy**: 
-    - **Step 1**: Ingest Asset Data (Financials, News) -> Chunk -> Embed.
-    - **Step 2**: Agents query specifically for their domain (e.g., Quant asks for "financial ratios").
-    - **Step 3**: Agents write their *Insights* back to RAG.
-    - **Step 4**: Coach queries for "Agent Insights" to synthesize.
+## 🤖 Agent Specifications
+
+| Agent | 🎯 Role | 📈 Metrics | 🔧 Data Sources |
+|-------|---------|-----------|-----------------|
+| **Scout** | Data Collection | Price, Volume, News | Yahoo Finance, Screener.in |
+| **Quant** | Fundamentals | P/E, ROE, Debt/Equity | Balance Sheet, Ratios |
+| **Macro** | Market Context | VIX, Yields, Trends | Economic Indicators |
+| **Philosopher** | Ethics & Quality | Moat, ESG, Management | Business Model |
+| **Regret** | Risk Assessment | Downside, Volatility | Scenario Simulation |
+| **Coach** | Synthesis | Match Score, Verdict | All Agent Insights |
+
+---
+
+## 🧬 Investor DNA Matching
+
+```mermaid
+flowchart LR
+    subgraph Profile["👤 Investor Profile"]
+        Risk[Risk Tolerance]
+        Horizon[Investment Horizon]
+        Goals[Financial Goals]
+        Avoid[Sectors to Avoid]
+    end
+
+    subgraph Analysis["📊 Stock Analysis"]
+        Volatility[Stock Volatility]
+        Growth[Growth Potential]
+        Sector[Sector/Industry]
+        Dividend[Dividend Profile]
+    end
+
+    subgraph Match["🎯 Match Score"]
+        Score[0-100 Score]
+        Verdict[BUY/HOLD/SELL]
+        Reasons[Fit & Concern Reasons]
+    end
+
+    Profile --> Match
+    Analysis --> Match
+    Match --> Score
+    Match --> Verdict
+    Match --> Reasons
+
+    style Profile fill:#7c3aed,stroke:#fff,color:#fff
+    style Analysis fill:#10b981,stroke:#fff,color:#fff
+    style Match fill:#f59e0b,stroke:#fff,color:#fff
+```
+
+---
+
+## 💾 Data Storage
+
+| Store | Technology | Purpose |
+|-------|------------|---------|
+| **Vector DB** | ChromaDB | RAG embeddings, semantic search |
+| **Relational DB** | SQLite | Users, Profiles, History |
+| **Cache** | In-Memory | Market data, API responses |
+
+---
+
+## 🔐 Authentication Flow
+
+```mermaid
+flowchart LR
+    A[User Login] --> B{Valid Credentials?}
+    B -->|Yes| C[Generate JWT]
+    B -->|No| D[401 Error]
+    C --> E[Return Token]
+    E --> F[Frontend Stores Token]
+    F --> G[Authenticated Requests]
+    G --> H{Token Valid?}
+    H -->|Yes| I[Access Granted]
+    H -->|No| J[Refresh/Re-login]
+```
+
+---
+
+## 🚀 Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 19 + Vite + Tailwind CSS |
+| **Backend** | FastAPI + Python 3.11 |
+| **AI/LLM** | Gemini API / Ollama (Local) |
+| **Vector Store** | ChromaDB |
+| **Database** | SQLite + SQLAlchemy |
+| **Data Sources** | Yahoo Finance, Screener.in |
+

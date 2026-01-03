@@ -67,16 +67,7 @@ app.include_router(history_router)
 # Enable CORS for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:3000",
-        "http://localhost:8501",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:8501"
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -251,15 +242,64 @@ def retrieve(
     return result
 
 @app.get("/market-data/{asset_id}")
-def get_market_data(asset_id: str):
+def get_market_data(asset_id: str, force_live: bool = True):
     """
     Fast endpoint: Get only market data.
+    By default fetches live data from Yahoo Finance.
+    Falls back to demo cache if live fetch fails.
     """
-    demo = get_demo_analysis(asset_id)
-    if demo:
-        return demo.get("market_data", {})
     from app.agents.scout import scout_agent
-    return scout_agent.collect_data(asset_id)
+    
+    try:
+        # Always try live data first for real-time prices
+        data = scout_agent.collect_data(asset_id)
+        financials = data.get("financials", {})
+        
+        # Extract key market data with live prices
+        price = financials.get("current_price", 0)
+        prev_close = financials.get("previous_close", 0)
+        
+        # Calculate change percentage
+        if prev_close and prev_close > 0:
+            change_pct = ((price - prev_close) / prev_close) * 100
+        else:
+            change_pct = 0
+        
+        # Determine currency from ticker suffix
+        currency = financials.get("currency", "USD")
+        if asset_id.upper().endswith('.NS') or asset_id.upper().endswith('.BO'):
+            currency = "INR"
+        
+        return {
+            "price": price,
+            "change": round(change_pct, 2),
+            "volume": financials.get("volume") or data.get("technicals", {}).get("volume", 0),
+            "high52w": financials.get("52_week_high"),
+            "low52w": financials.get("52_week_low"),
+            "pe_ratio": financials.get("pe_ratio"),
+            "market_cap": financials.get("market_cap"),
+            "currency": currency,
+            "company_name": financials.get("company_name", asset_id),
+            "source": "live"
+        }
+    except Exception as e:
+        print(f"[Market Data] Live fetch failed for {asset_id}: {e}")
+        # Fallback to demo cache
+        demo = get_demo_analysis(asset_id)
+        if demo:
+            market_data = demo.get("market_data", {})
+            market_data["source"] = "demo_cache"
+            return market_data
+        
+        # Return error state
+        return {
+            "price": 0,
+            "change": 0,
+            "volume": 0,
+            "currency": "INR" if asset_id.upper().endswith('.NS') else "USD",
+            "error": str(e),
+            "source": "error"
+        }
 
 
 @app.get("/analyze/{asset_id}")

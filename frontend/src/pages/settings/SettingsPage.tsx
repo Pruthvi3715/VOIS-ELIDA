@@ -15,7 +15,7 @@ const SettingsPage: React.FC = () => {
     const { user } = useAuth();
 
     const [settings, setSettings] = useState<UserSettings>(() => {
-        const saved = localStorage.getItem('vois_settings');
+        const saved = localStorage.getItem('elida_settings');
         return saved ? JSON.parse(saved) : {
             dnaEnabled: true,
             dnaDefault: true,
@@ -27,7 +27,7 @@ const SettingsPage: React.FC = () => {
     const [saved, setSaved] = useState(false);
 
     const saveSettings = () => {
-        localStorage.setItem('vois_settings', JSON.stringify(settings));
+        localStorage.setItem('elida_settings', JSON.stringify(settings));
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
@@ -45,7 +45,7 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                     <h1 className="text-2xl font-bold text-white">Settings</h1>
-                    <p className="text-secondary text-sm">Customize your VOIS experience</p>
+                    <p className="text-secondary text-sm">Customize your ELIDA experience</p>
                 </div>
             </div>
 
@@ -106,8 +106,8 @@ const SettingsPage: React.FC = () => {
                                     key={level}
                                     onClick={() => updateSetting('riskTolerance', level)}
                                     className={`flex-1 py-2 px-4 rounded-lg font-medium capitalize transition ${settings.riskTolerance === level
-                                            ? 'bg-gradient-primary text-white'
-                                            : 'bg-surface text-secondary hover:text-white'
+                                        ? 'bg-gradient-primary text-white'
+                                        : 'bg-surface text-secondary hover:text-white'
                                         }`}
                                 >
                                     {level}

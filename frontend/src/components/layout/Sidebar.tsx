@@ -37,8 +37,13 @@ const Sidebar: React.FC = () => {
                         >
                             {({ isActive }) => (
                                 <>
-                                    <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-secondary group-hover:text-white'}`} />
+                                    <item.icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-secondary group-hover:text-white'} ${item.label === 'Analysis' ? 'text-amber-400' : ''}`} />
                                     <span className="font-medium">{item.label}</span>
+                                    {item.label === 'Analysis' && (
+                                        <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
+                                            AI
+                                        </span>
+                                    )}
                                 </>
                             )}
                         </NavLink>

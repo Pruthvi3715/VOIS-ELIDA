@@ -41,7 +41,7 @@ class AuthService:
         self.users = {
             "default": {
                 "user_id": "default",
-                "email": "demo@vois.ai",
+                "email": "demo@elida.ai",
                 "hashed_password": self.hash_password("demo123")
             }
         }
