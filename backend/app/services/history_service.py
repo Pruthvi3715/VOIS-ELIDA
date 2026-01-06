@@ -14,7 +14,7 @@ class HistoryService:
             query_type=query_type,
             query=query,
             result=result,
-            timestamp=datetime.utcnow()
+            created_at=datetime.utcnow()
         )
         db.add(entry)
         db.commit()
@@ -25,7 +25,7 @@ class HistoryService:
         """Get summary history for a user."""
         history = db.query(AnalysisHistory)\
             .filter(AnalysisHistory.user_id == user_id)\
-            .order_by(AnalysisHistory.timestamp.desc())\
+            .order_by(AnalysisHistory.created_at.desc())\
             .limit(limit)\
             .all()
             
@@ -34,7 +34,7 @@ class HistoryService:
                 "id": str(h.id),
                 "type": h.query_type,
                 "query": h.query,
-                "timestamp": h.timestamp.isoformat()
+                "timestamp": h.created_at.isoformat()
             }
             for h in history
         ]
@@ -48,7 +48,7 @@ class HistoryService:
                 "user_id": str(item.user_id),
                 "type": item.query_type,
                 "query": item.query,
-                "timestamp": item.timestamp.isoformat(),
+                "timestamp": item.created_at.isoformat(),
                 "result": item.result
             }
         return None

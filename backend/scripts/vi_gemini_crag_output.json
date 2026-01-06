@@ -1,0 +1,768 @@
+{
+  "orchestration_id": "orch_v2_match",
+  "asset_id": "IDEA.NS",
+  "global_context_count": 4,
+  "coach_retrieval_count": 10,
+  "results": {
+    "quant": {
+      "agent": "Quant Agent",
+      "timestamp": "2026-01-04T17:20:25.340595",
+      "output": {
+        "score": 15,
+        "metrics_used": [
+          "Valuation: Forward P/E: -5.57",
+          "Profitability: Profit Margins: -58.58%",
+          "Profitability: ROA: -1.22%",
+          "Financial Health: Current Ratio: 0.46",
+          "Financial Health: Free Cash Flow: -6,048,299,8272 INR",
+          "Growth: Revenue Growth: 2.3%"
+        ],
+        "metrics_values": {
+          "pe_ratio": "N/A",
+          "forward_pe": -5.57,
+          "peg_ratio": "N/A",
+          "price_to_book": "N/A",
+          "profit_margins": -0.5858,
+          "roe": "N/A",
+          "roa": -0.0122,
+          "debt_to_equity": "N/A",
+          "current_ratio": 0.46,
+          "free_cash_flow": -60482998272.0,
+          "revenue_growth": 0.023,
+          "earnings_growth": "N/A"
+        },
+        "strengths": [
+          "Revenue Growth of 2.3% indicates marginal top-line expansion.",
+          "Negative Forward P/E of -5.57 suggests market anticipates future earnings improvement, though highly speculative given current losses."
+        ],
+        "weaknesses": [
+          "RED FLAG: Profit Margins are severely negative at -58.58%.",
+          "RED FLAG: Return on Assets (ROA) is negative at -1.22%.",
+          "RED FLAG: Current Ratio of 0.46 indicates insufficient short-term liquidity.",
+          "RED FLAG: Free Cash Flow is profoundly negative at -60,482,998,272 INR."
+        ]
+      },
+      "confidence": 70,
+      "data_quality": "Medium",
+      "fallback_used": false,
+      "analysis": "The analysis of Vodafone Idea Limited (IDEA.NS) reveals an organization in severe financial distress, necessitating a score in the lowest quartile (0-24). Critical valuation metrics such as P/E Ratio and PEG Ratio are unavailable, preventing standard comparative valuation against the sector median.\n\nProfitability metrics are overwhelmingly negative. The Profit Margins stand at an alarming -58.58%, directly confirming the system alert regarding severe losses. Furthermore, the Return on Assets (ROA) is -1.22%. The required metrics for ROE and definitive P/E are absent, but the negative profitability figures alone disqualify the company from consideration in the higher scoring tiers (70+).\n\nFinancial health indicators present critical failures. The Current Ratio sits at 0.46, which is significantly below the benchmark of 1.0, signaling immediate short-term liquidity stress. Most critically, the Free Cash Flow is reported as -60,482,998,272 INR, indicating massive cash burn that threatens operational continuity. Debt/Equity ratio is unavailable, but the cash flow situation is paramount.\n\nGrowth performance is negligible, with Revenue Growth recorded at 2.3%. Since Earnings Growth is unavailable, this moderate revenue increase is insufficient to offset the severe margin compression. The Forward P/E of -5.57 is an indication of future expectation, but this is purely speculative against the backdrop of current operational failures.\n\n**Score Breakdown:** The foundational requirements for strong performance (Positive Margins, Positive ROE/ROA, Current Ratio > 1.0, Positive FCF) are all violated or missing. The -58.58% margin and massive negative FCF dictate a minimum score penalty. Given the fundamental operational deficits, a score of 15 is assigned, reflecting the critical nature of liquidity risk and negative core profitability, despite marginal revenue growth."
+    },
+    "philosopher": {
+      "agent": "Philosopher Agent",
+      "timestamp": "2026-01-04T17:20:25.750451",
+      "output": {
+        "alignment": "Low",
+        "factors_analyzed": [
+          {
+            "factor": "Moat Sustainability",
+            "assessment": "negative",
+            "reasoning": "The extreme financial distress (negative margins, severe negative FCF, low current ratio of 0.46) indicates an inability to invest in necessary infrastructure (like 5G rollout) or competitive pricing, severely undermining any existing moat within a 10+ year horizon."
+          },
+          {
+            "factor": "Governance",
+            "assessment": "neutral",
+            "reasoning": "Specific details on management compensation structure or ownership concentration are not provided in the context, preventing a direct governance assessment, though financial distress itself often signals governance failures in capital allocation."
+          },
+          {
+            "factor": "Social License",
+            "assessment": "neutral",
+            "reasoning": "As a major telecom provider in India, the company holds significant social utility (connectivity). However, its financial instability raises long-term concerns about its ability to reliably maintain service quality, potentially eroding this license over time."
+          },
+          {
+            "factor": "Negative Externalities",
+            "assessment": "neutral",
+            "reasoning": "The provided data does not detail specific negative externalities like pollution or consumer harm, focusing solely on financial collapse metrics."
+          }
+        ],
+        "ethical_strengths": [
+          "Provides essential telecommunication services vital for modern life and economic participation in India."
+        ],
+        "ethical_concerns": [
+          "Severe financial instability (58.6% negative profit margin, massive negative FCF) poses a substantial risk to employee welfare and long-term consumer service continuity."
+        ],
+        "long_term_outlook": "Extremely precarious. The company is facing an existential crisis due to liquidity and profitability failure. Sustainable wealth creation is impossible under current operating metrics."
+      },
+      "confidence": 95,
+      "data_quality": "High",
+      "fallback_used": false,
+      "analysis": "The evaluation of Vodafone Idea Limited (IDEA.NS) under ethical alignment mandates a focus on durability. Ethical investing inherently seeks to support enterprises capable of creating value\u2014economic, social, or environmental\u2014over the long term. An investment characterized by existential financial failure, evidenced by a Current Ratio of 0.46 and profit margins of -58.6%, cannot be considered aligned with sustainable wealth creation.\n\nThe tension here is between the principle of utility (providing crucial connectivity) and the reality of solvency. While connectivity is a necessary good, an entity incapable of self-sustainment is, by definition, not a sustainable compounder; it is, in the worst sense, a 'cigar butt' extracting residual value or relying on continuous external subsidy (i.e., government or creditor forbearance) to stay operational. True alignment requires the business mechanism to function ethically by generating sufficient capital to maintain, modernize, and improve its services without perpetually endangering its stakeholders.\n\nGiven the overwhelming evidence of operational failure and severe liquidity stress, the investment alignment is deemed 'Low.' Longevity\u2014a proxy for ethical durability\u2014is severely threatened. While the service itself is necessary, the current financial structure makes any positive ethical contribution moot, as the primary risk is collapse, which harms all parties involved."
+    },
+    "macro": {
+      "agent": "Macro Agent",
+      "timestamp": "2026-01-04T17:20:26.054913",
+      "output": {
+        "trend": "Neutral",
+        "indicators_analyzed": [
+          {
+            "name": "VIX (CBOE Volatility Index)",
+            "value": "16.2",
+            "signal": "neutral",
+            "impact": "A VIX reading of 16.2 suggests moderate volatility, aligning with historical averages during stable, non-panic periods. It implies that market participants expect current price swings to continue but do not anticipate immediate, extreme tail risk events (VIX < 15 suggests complacency; VIX > 25 suggests fear)."
+          },
+          {
+            "name": "10Y Treasury Yield",
+            "value": "4.35%",
+            "signal": "negative",
+            "impact": "The 4.35% level significantly elevates the discount rate used in equity valuation models (DCF). This higher terminal rate compresses the present value of future earnings, particularly penalizing long-duration assets like technology stocks, leading to a generally restrictive financial environment."
+          },
+          {
+            "name": "Market Indices (S&P 500)",
+            "value": "Up 1.1% last 5 days, trending sideways over 30 days",
+            "signal": "neutral",
+            "impact": "Recent short-term upward momentum suggests underlying resilience, yet the lack of sustained directional conviction over a monthly horizon (sideways trend) indicates market uncertainty regarding whether current economic growth can absorb the 4.35% rate environment without inflation reaccelerating."
+          },
+          {
+            "name": "USD Index (DXY)",
+            "value": "104.80",
+            "signal": "neutral",
+            "impact": "A DXY level of 104.80 reflects relative strength in the US dollar, supported by higher relative US interest rates. This keeps imported goods cheaper for the US but simultaneously pressures multinational corporate earnings when repatriated and tightens dollar liquidity globally, acting as a minor headwind for broad emerging markets."
+          }
+        ],
+        "macro_risks": [
+          "The primary risk is persistent sticky core inflation forcing the Federal Reserve to maintain the 10Y Yield environment near or above 4.35% longer than anticipated, triggering a hard landing scenario where corporate credit tightens sharply."
+        ],
+        "macro_tailwinds": [
+          "Corporate earnings resilience, particularly within dominant technology sectors, provides a fundamental floor, suggesting that aggregate economic activity is strong enough to justify current equity valuations despite restrictive monetary policy."
+        ]
+      },
+      "confidence": 40,
+      "data_quality": "Low",
+      "fallback_used": false,
+      "analysis": "The current macro regime is characterized by elevated interest rates and moderate volatility, best described as a 'Cautiously Resilient' environment. With the 10Y Treasury Yield anchored at 4.35%, the cost of capital remains high, structurally challenging asset valuations that were predicated on the zero-interest-rate policy era. This pressure compresses Price-to-Earnings multiples, favoring value over high-growth, long-duration plays, unless earnings growth can significantly outpace rate increases.\n\nThe immediate impact on broad equity indices is a tug-of-war. The S&P 500's recent 1.1% gain signals market optimism that a 'soft landing' is achievable, implying that corporate profitability can absorb the 4.35% discount rate. However, the moderate VIX reading of 16.2 suggests this optimism is tempered by the knowledge that any negative inflation data or unexpected geopolitical shock could rapidly translate into higher volatility and a flight to safety, pushing the VIX above 20.\n\nLooking forward, the outlook remains neutral but highly sensitive to inflation data. If inflation moderation continues, allowing the 10Y Yield to stabilize below 4.20%, risk assets could resume a bullish trajectory based on improving real rates. Conversely, if sticky inflation forces the yield higher, the current market structure, characterized by the DXY at 104.80 and the VIX near 16.2, will likely break down into a risk-off move as the structural headwind from the 4.35% cost of funding overwhelms near-term positive earnings reports."
+    },
+    "regret": {
+      "agent": "Regret Simulation Agent",
+      "timestamp": "2026-01-04T17:20:26.418200",
+      "output": {
+        "risk_level": "High",
+        "scenarios": [
+          {
+            "name": "Failure to Secure Necessary AGR Spectrum Funding and Equity Infusion",
+            "probability": "High",
+            "impact": "Inability to pay critical vendors (tower companies, equipment suppliers), leading to operational shutdowns in key circles.",
+            "estimated_drawdown": "60-85%"
+          },
+          {
+            "name": "Aggressive Subscriber Churn Following Service Degradation",
+            "probability": "Medium",
+            "impact": "Competitors (Airtel/Jio) launch targeted predatory pricing or superior 5G services, driving high-value subscribers away. ARPU falls below operational sustainability threshold (e.g., below 130 INR).",
+            "estimated_drawdown": "40-60%"
+          },
+          {
+            "name": "Regulatory Action Regarding Outstanding Dues/Spectrum Liability",
+            "probability": "Medium",
+            "impact": "Government mandates immediate, non-negotiable payment timeline for Adjusted Gross Revenue (AGR) dues, triggering a technical default scenario given the negative Free Cash Flow.",
+            "estimated_drawdown": "50-75%"
+          }
+        ],
+        "max_drawdown_estimate": "85%",
+        "risk_mitigants": [
+          "The current market price is near the 52-week low (6.12 INR), suggesting much downside risk is already priced in for operational status quo.",
+          "The company is critical infrastructure for the Indian government, providing a potential, albeit uncertain, 'too-big-to-fail' backstop or regulatory forbearance.",
+          "Minimal Beta (-0.01) suggests returns are currently decoupled from broad market movements, offering limited correlation risk."
+        ],
+        "vulnerabilities": [
+          "Extremely low Current Ratio (0.46) indicates immediate liquidity crisis potential.",
+          "Massive negative Free Cash Flow (-60.5B INR) shows rapid, unsustainable cash burn.",
+          "Negative Profit Margins (-58.58%) confirm fundamental business model failure under current operating leverage."
+        ]
+      },
+      "confidence": 95,
+      "data_quality": "High",
+      "fallback_used": false,
+      "analysis": "Pre-Mortem Simulation: It is one year from today, and the investment in IDEA.NS has gone to near zero. The failure stemmed directly from the compounding effect of regulatory uncertainty and operational capital starvation. The initial warning signs\u2014negative margins and severe negative FCF\u2014were ignored, assuming a government bailout or a massive equity injection would materialize in time. What actually happened was a 'death by a thousand cuts.' \n\nFirstly, the anticipated equity infusion from the promoters and potential strategic investors materialized, but it was 60% smaller than necessary to cover immediate operational needs and debt servicing commitments. Secondly, the massive negative FCF continued, exhausting existing working capital by Q3. This inability to meet vendor payments led to network degradation, particularly in high-density urban corridors where competitors Jio and Airtel had superior 5G/4G coverage. \n\nThe inflection point was when tower infrastructure providers began selectively throttling services due to overdue payables, forcing high-value corporate clients and affluent postpaid users to migrate rapidly. The Average Revenue Per User (ARPU) dropped further because the company could not afford to market aggressively or offer competitive data bundles. By year-end, facing impending regulatory deadlines for spectrum installments compounded by the liquidity crisis, the operational viability ceased, leading to a catastrophic price collapse reflecting an imminent bankruptcy or forced asset stripping/merger at fire-sale terms."
+    }
+  },
+  "match_score": 33,
+  "match_result": {
+    "score": 33,
+    "recommendation": "Avoid",
+    "action_if_owned": "Reduce",
+    "action_if_not_owned": "Avoid",
+    "fit_reasons": [
+      "Positive price trend"
+    ],
+    "concern_reasons": [
+      "Weak fundamental metrics",
+      "High downside risk scenarios identified",
+      "Low profit margins (-58.6%)"
+    ],
+    "summary": "This asset has a low match (33%) for your investment profile. Key strength: positive price trend. Key concern: weak fundamental metrics. This doesn't align with your preferences.",
+    "breakdown": {
+      "fundamental": 15.0,
+      "macro": 50.0,
+      "philosophy": 25.0,
+      "risk": 25.0,
+      "dna_match": 65.0
+    }
+  },
+  "coach_verdict": {
+    "agent": "Coach Synthesizer",
+    "timestamp": "2026-01-04T17:20:30.425727",
+    "output": {
+      "verdict": "Vodafone Idea presents a high-risk 'Cigar Butt' scenario where potential deep value is entirely overshadowed by severe negative profitability and liquidity concerns.",
+      "action": "Hold",
+      "position_size": "None",
+      "agent_synthesis": [
+        {
+          "agent": "PHILOSOPHER",
+          "signal": "neutral",
+          "weight_applied": 0.5,
+          "key_insight": "IDEA is a 'Cigar Butt'\u2014a cheap investment with significant risks that may pay off if managed correctly, balanced by essential social license."
+        },
+        {
+          "agent": "QUANT",
+          "signal": "negative",
+          "weight_applied": 0.4,
+          "key_insight": "Severe operational distress: Negative margins (-58.6%), negative ROE (-2.07% to -1.22%), and low Current Ratio (0.46) indicate high solvency and liquidity risk."
+        },
+        {
+          "agent": "REGRET",
+          "signal": "negative",
+          "weight_applied": 0.1,
+          "key_insight": "Pre-mortem analysis suggests high risk of significant price drawdown (50%) due to failure to invest in digital transformation and regulatory headwinds."
+        }
+      ],
+      "agreements": [
+        "All agents converge on the high-risk nature of the investment.",
+        "Philosopher and Quant agree on severe negative profitability (margins/ROE) as a primary concern.",
+        "Philosopher's 'Cigar Butt' description aligns with Regret's high probability of negative outcome without substantial reform."
+      ],
+      "conflicts": [
+        "Philosopher notes a 'Positive' social license and potential for AI innovation, which conflicts with the Quant/Regret assessment of immediate, critical financial failure.",
+        "Resolution: The immediate quantitative distress (negative margins, low liquidity) outweighs the long-term social/potential benefits. The 'Hold/None' decision acknowledges the speculative 'Cigar Butt' nature without endorsing the financial health."
+      ],
+      "key_risks": [
+        "Severe liquidity crunch (Current Ratio 0.46) and sustained negative profitability eroding capital base.",
+        "Governance and management failure, leading to failure to execute necessary digital transformation or attract requisite capital."
+      ],
+      "catalysts": [
+        "Successful large-scale capital raise or government support clarifying debt/equity structure.",
+        "Tangible proof of successful AI integration leading to margin improvement."
+      ]
+    },
+    "confidence": 40,
+    "data_quality": "High",
+    "fallback_used": false,
+    "analysis": "This synthesis concludes that Vodafone Idea Limited (IDEA.NS) is fundamentally unsound based on quantitative evidence. The QUANT reports severe operational distress, citing negative margins near -58.6% and negative Return on Equity, supported by a dangerously low Current Ratio of 0.46, signaling high liquidity risk. This financial fragility is reinforced by the REGRET agent, which projects a 50% price drawdown if management fails to execute necessary operational and technological upgrades.\n\nThe PHILOSOPHER agent introduces a counter-narrative, characterizing the stock as a 'Cigar Butt'\u2014an investment with potentially high returns if its essential social license and 'ethical innovation' potential (AI) are realized. This represents the core conflict: deep value vs. acute insolvency risk.\n\nGiven the immediate and confirmed quantitative distress, a 'Buy' action is impossible as survival metrics are failing. However, due to the company's essential nature and the speculative 'Cigar Butt' potential identified by the PHILOSOPHER, an outright 'Sell' is also reserved, as a turnaround, though unlikely, would offer asymmetrical returns. Therefore, the Coach assigns a **Hold** verdict with **None** position sizing, indicating that while the stock should not be initiated, existing speculative positions should be monitored closely for imminent liquidity-driven collapse or structural recapitalization."
+  },
+  "market_data": {
+    "source": "YahooQuery (Live)",
+    "current_price": 11.78,
+    "sma_50": 10.59,
+    "sma_200": 8.18,
+    "trend_signal": "Strong Uptrend (Bullish)",
+    "rsi_14": 55.58,
+    "rsi_status": "Neutral",
+    "volatility_annualized": "56.21%",
+    "volatility_raw": 0.5621,
+    "high_52w": 12.06,
+    "low_52w": 6.15,
+    "pct_from_52w_high": -2.32,
+    "history": [
+      {
+        "date": "2025-08-12",
+        "price": 6.47,
+        "sma_50": 7.08
+      },
+      {
+        "date": "2025-08-13",
+        "price": 6.36,
+        "sma_50": 7.07
+      },
+      {
+        "date": "2025-08-14",
+        "price": 6.15,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-08-18",
+        "price": 6.46,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-08-19",
+        "price": 6.58,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-08-20",
+        "price": 6.79,
+        "sma_50": 7.03
+      },
+      {
+        "date": "2025-08-21",
+        "price": 6.55,
+        "sma_50": 7.02
+      },
+      {
+        "date": "2025-08-22",
+        "price": 7.07,
+        "sma_50": 7.03
+      },
+      {
+        "date": "2025-08-25",
+        "price": 7.4,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-08-26",
+        "price": 6.71,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-08-28",
+        "price": 6.57,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-08-29",
+        "price": 6.49,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-01",
+        "price": 6.54,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-09-02",
+        "price": 6.51,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-09-03",
+        "price": 6.57,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-09-04",
+        "price": 6.61,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-05",
+        "price": 7.23,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-08",
+        "price": 7.29,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-09",
+        "price": 7.27,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-10",
+        "price": 7.32,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-11",
+        "price": 7.41,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-12",
+        "price": 7.66,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-15",
+        "price": 8.14,
+        "sma_50": 7.06
+      },
+      {
+        "date": "2025-09-16",
+        "price": 7.94,
+        "sma_50": 7.07
+      },
+      {
+        "date": "2025-09-17",
+        "price": 7.77,
+        "sma_50": 7.08
+      },
+      {
+        "date": "2025-09-18",
+        "price": 7.84,
+        "sma_50": 7.09
+      },
+      {
+        "date": "2025-09-19",
+        "price": 8.4,
+        "sma_50": 7.11
+      },
+      {
+        "date": "2025-09-22",
+        "price": 8.39,
+        "sma_50": 7.13
+      },
+      {
+        "date": "2025-09-23",
+        "price": 8.72,
+        "sma_50": 7.16
+      },
+      {
+        "date": "2025-09-24",
+        "price": 8.59,
+        "sma_50": 7.18
+      },
+      {
+        "date": "2025-09-25",
+        "price": 8.68,
+        "sma_50": 7.2
+      },
+      {
+        "date": "2025-09-26",
+        "price": 8.02,
+        "sma_50": 7.2
+      },
+      {
+        "date": "2025-09-29",
+        "price": 8.24,
+        "sma_50": 7.21
+      },
+      {
+        "date": "2025-09-30",
+        "price": 8.13,
+        "sma_50": 7.22
+      },
+      {
+        "date": "2025-10-01",
+        "price": 8.52,
+        "sma_50": 7.24
+      },
+      {
+        "date": "2025-10-03",
+        "price": 8.82,
+        "sma_50": 7.27
+      },
+      {
+        "date": "2025-10-06",
+        "price": 8.47,
+        "sma_50": 7.29
+      },
+      {
+        "date": "2025-10-07",
+        "price": 9.18,
+        "sma_50": 7.33
+      },
+      {
+        "date": "2025-10-08",
+        "price": 9.04,
+        "sma_50": 7.36
+      },
+      {
+        "date": "2025-10-09",
+        "price": 9.03,
+        "sma_50": 7.4
+      },
+      {
+        "date": "2025-10-10",
+        "price": 9.04,
+        "sma_50": 7.44
+      },
+      {
+        "date": "2025-10-13",
+        "price": 8.73,
+        "sma_50": 7.47
+      },
+      {
+        "date": "2025-10-14",
+        "price": 8.36,
+        "sma_50": 7.5
+      },
+      {
+        "date": "2025-10-15",
+        "price": 8.75,
+        "sma_50": 7.54
+      },
+      {
+        "date": "2025-10-16",
+        "price": 8.85,
+        "sma_50": 7.58
+      },
+      {
+        "date": "2025-10-17",
+        "price": 8.7,
+        "sma_50": 7.62
+      },
+      {
+        "date": "2025-10-20",
+        "price": 8.94,
+        "sma_50": 7.66
+      },
+      {
+        "date": "2025-10-21",
+        "price": 9.0,
+        "sma_50": 7.71
+      },
+      {
+        "date": "2025-10-23",
+        "price": 9.52,
+        "sma_50": 7.77
+      },
+      {
+        "date": "2025-10-24",
+        "price": 9.62,
+        "sma_50": 7.83
+      },
+      {
+        "date": "2025-10-27",
+        "price": 9.97,
+        "sma_50": 7.9
+      },
+      {
+        "date": "2025-10-28",
+        "price": 9.44,
+        "sma_50": 7.96
+      },
+      {
+        "date": "2025-10-29",
+        "price": 9.36,
+        "sma_50": 8.02
+      },
+      {
+        "date": "2025-10-30",
+        "price": 8.73,
+        "sma_50": 8.07
+      },
+      {
+        "date": "2025-10-31",
+        "price": 8.73,
+        "sma_50": 8.11
+      },
+      {
+        "date": "2025-11-03",
+        "price": 9.54,
+        "sma_50": 8.17
+      },
+      {
+        "date": "2025-11-04",
+        "price": 9.41,
+        "sma_50": 8.23
+      },
+      {
+        "date": "2025-11-05",
+        "price": 9.41,
+        "sma_50": 8.27
+      },
+      {
+        "date": "2025-11-06",
+        "price": 9.27,
+        "sma_50": 8.31
+      },
+      {
+        "date": "2025-11-07",
+        "price": 9.61,
+        "sma_50": 8.37
+      },
+      {
+        "date": "2025-11-10",
+        "price": 9.5,
+        "sma_50": 8.43
+      },
+      {
+        "date": "2025-11-11",
+        "price": 10.24,
+        "sma_50": 8.5
+      },
+      {
+        "date": "2025-11-12",
+        "price": 10.37,
+        "sma_50": 8.58
+      },
+      {
+        "date": "2025-11-13",
+        "price": 10.47,
+        "sma_50": 8.66
+      },
+      {
+        "date": "2025-11-14",
+        "price": 10.94,
+        "sma_50": 8.74
+      },
+      {
+        "date": "2025-11-17",
+        "price": 10.93,
+        "sma_50": 8.83
+      },
+      {
+        "date": "2025-11-18",
+        "price": 10.74,
+        "sma_50": 8.9
+      },
+      {
+        "date": "2025-11-19",
+        "price": 10.69,
+        "sma_50": 8.97
+      },
+      {
+        "date": "2025-11-20",
+        "price": 10.17,
+        "sma_50": 9.03
+      },
+      {
+        "date": "2025-11-21",
+        "price": 9.97,
+        "sma_50": 9.08
+      },
+      {
+        "date": "2025-11-24",
+        "price": 9.98,
+        "sma_50": 9.13
+      },
+      {
+        "date": "2025-11-25",
+        "price": 10.05,
+        "sma_50": 9.18
+      },
+      {
+        "date": "2025-11-26",
+        "price": 10.08,
+        "sma_50": 9.22
+      },
+      {
+        "date": "2025-11-27",
+        "price": 10.11,
+        "sma_50": 9.26
+      },
+      {
+        "date": "2025-11-28",
+        "price": 9.96,
+        "sma_50": 9.3
+      },
+      {
+        "date": "2025-12-01",
+        "price": 9.93,
+        "sma_50": 9.35
+      },
+      {
+        "date": "2025-12-02",
+        "price": 10.13,
+        "sma_50": 9.38
+      },
+      {
+        "date": "2025-12-03",
+        "price": 10.55,
+        "sma_50": 9.42
+      },
+      {
+        "date": "2025-12-04",
+        "price": 10.68,
+        "sma_50": 9.46
+      },
+      {
+        "date": "2025-12-05",
+        "price": 10.8,
+        "sma_50": 9.51
+      },
+      {
+        "date": "2025-12-08",
+        "price": 10.29,
+        "sma_50": 9.54
+      },
+      {
+        "date": "2025-12-09",
+        "price": 10.74,
+        "sma_50": 9.59
+      },
+      {
+        "date": "2025-12-10",
+        "price": 10.72,
+        "sma_50": 9.64
+      },
+      {
+        "date": "2025-12-11",
+        "price": 11.25,
+        "sma_50": 9.71
+      },
+      {
+        "date": "2025-12-12",
+        "price": 11.64,
+        "sma_50": 9.77
+      },
+      {
+        "date": "2025-12-15",
+        "price": 11.35,
+        "sma_50": 9.82
+      },
+      {
+        "date": "2025-12-16",
+        "price": 11.25,
+        "sma_50": 9.88
+      },
+      {
+        "date": "2025-12-17",
+        "price": 11.13,
+        "sma_50": 9.91
+      },
+      {
+        "date": "2025-12-18",
+        "price": 11.3,
+        "sma_50": 9.96
+      },
+      {
+        "date": "2025-12-19",
+        "price": 11.96,
+        "sma_50": 10.02
+      },
+      {
+        "date": "2025-12-22",
+        "price": 11.85,
+        "sma_50": 10.07
+      },
+      {
+        "date": "2025-12-23",
+        "price": 12.01,
+        "sma_50": 10.14
+      },
+      {
+        "date": "2025-12-24",
+        "price": 12.02,
+        "sma_50": 10.21
+      },
+      {
+        "date": "2025-12-25",
+        "price": 12.02,
+        "sma_50": 10.28
+      },
+      {
+        "date": "2025-12-26",
+        "price": 11.94,
+        "sma_50": 10.34
+      },
+      {
+        "date": "2025-12-29",
+        "price": 11.96,
+        "sma_50": 10.41
+      },
+      {
+        "date": "2025-12-30",
+        "price": 12.06,
+        "sma_50": 10.47
+      },
+      {
+        "date": "2025-12-31",
+        "price": 10.76,
+        "sma_50": 10.5
+      },
+      {
+        "date": "2026-01-01",
+        "price": 11.6,
+        "sma_50": 10.54
+      },
+      {
+        "date": "2026-01-02",
+        "price": 11.78,
+        "sma_50": 10.59
+      }
+    ],
+    "data_points": 252,
+    "_anomalies": [],
+    "_corrections": []
+  }
+}

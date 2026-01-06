@@ -120,7 +120,8 @@ const HistoryPage: React.FC = () => {
                             className="group"
                         >
                             <Link
-                                to={`/analysis/${item.query}`}
+                                to={`/history/${item.id}`}
+                                state={{ historyItem: item }}
                                 className="glass-card p-4 flex items-center justify-between hover:border-primary-500/30 hover:bg-glass-light transition-all"
                             >
                                 <div className="flex items-center gap-4">

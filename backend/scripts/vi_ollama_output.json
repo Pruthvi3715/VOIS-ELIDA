@@ -1,0 +1,679 @@
+{
+  "orchestration_id": "orch_v2_match",
+  "asset_id": "IDEA.NS",
+  "global_context_count": 5,
+  "coach_retrieval_count": 10,
+  "results": {
+    "quant": {
+      "agent": "Quant Agent",
+      "timestamp": "2026-01-04T16:33:22.560998",
+      "output": {
+        "score": 50,
+        "metrics_used": [],
+        "metrics_values": {},
+        "strengths": [],
+        "weaknesses": []
+      },
+      "confidence": 50,
+      "data_quality": "Medium",
+      "fallback_used": false,
+      "analysis": "**"
+    },
+    "regret": {
+      "agent": "Regret Simulation Agent",
+      "timestamp": "2026-01-04T16:33:34.504417",
+      "output": {
+        "risk_level": "High",
+        "scenarios": [
+          {
+            "name": "Lack of profitability due to poor management and governance",
+            "probability": "Medium",
+            "impact": "Revenues drop by 20% as customers defect due to poor network quality and high prices.",
+            "estimated_drawdown": "30-40%"
+          },
+          {
+            "name": "Regulatory changes hinder growth and profitability",
+            "probability": "High",
+            "impact": "New regulatory requirements increase operating costs by 15%, reducing profit margins and affecting revenue growth.",
+            "estimated_drawdown": "25-35%"
+          },
+          {
+            "name": "Lack of investment in AI technologies hurts competitiveness",
+            "probability": "Medium",
+            "impact": "Failing to adopt AI-driven innovations leads to a decline in market share, resulting in reduced revenues and profitability.",
+            "estimated_drawdown": "20-30%"
+          }
+        ],
+        "max_drawdown_estimate": "50%",
+        "risk_mitigants": [
+          "Investment in digital transformation and AI technologies",
+          "Improving governance and management practices"
+        ],
+        "vulnerabilities": [
+          "Poor network quality, high prices, lack of innovation"
+        ]
+      },
+      "confidence": 80,
+      "data_quality": "High",
+      "fallback_used": false,
+      "analysis": "**Pre-Mortem Analysis**: In one year from now, Vodafone Idea Limited has faced significant challenges due to poor management and governance. The company failed to invest in AI technologies, leading to a decline in market share and reduced revenues. Regulatory changes further increased operating costs, reducing profit margins. The lack of profitability and poor financial health led to a 50% drawdown in stock price. To prevent such outcomes, the company needs to improve its management practices, invest in digital transformation, and adopt AI-driven innovations."
+    },
+    "macro": {
+      "agent": "Macro Agent",
+      "timestamp": "2026-01-04T16:33:58.154673",
+      "output": {
+        "trend": "Neutral",
+        "indicators_analyzed": [],
+        "macro_risks": [],
+        "macro_tailwinds": []
+      },
+      "confidence": 40,
+      "data_quality": "Low",
+      "fallback_used": false,
+      "analysis": "Here is the detailed analysis of the market environment:\n\n```\n{\n    \"trend\": \"Neutral\",\n    \"confidence\": 60,\n    \"indicators_analyzed\": [\n        {\n            \"name\": \"VIX\",\n            \"value\": 14.5,\n            \"signal\": \"neutral\",\n            \"impact\": \"The current VIX level of 14.5 indicates a moderate level of fear, suggesting that investors are moderately concerned about potential market volatility. This could lead to increased hedging and risk aversion strategies, but does not necessarily imply a severe market downturn.\"\n        },\n        {\n            \"name\": \"10Y Yield\",\n            \"value\": 1.87%,\n            \"signal\": \"negative\",\n            \"impact\": \"The current 10-year Treasury yield of 1.87% is relatively low compared to historical levels, which could indicate that interest rates are artificially suppressed and may lead to a decrease in discount rates and valuations for assets sensitive to interest rates.\"\n        },\n        {\n            \"name\": S&P 500 Index\",\n            \"value\": 3,870.2,\n            \"signal\": \"positive\",\n            \"impact\": \"The current level of the S&P 500 index at 3,870.2 suggests a moderate trend direction with strength. This could imply that investors are moderately optimistic about future returns and willing to take on some risk.\"\n        },\n        {\n            \"name\": USD Index (DXY)\",\n            \"value\": 92.5,\n            \"signal\": \"neutral\",\n            \"impact\": \"The current level of the US Dollar index at 92.5 suggests a stable trend direction with moderate strength. This could imply that investors are moderately confident in the stability and value of the dollar.\"\n        }\n    ],\n    \"macro_risks\": [\n        \"A potential recession in the European Union, driven by rising interest rates and increased debt levels, could have a ripple effect on global markets and lead to decreased economic growth.\"\n    ],\n    \"macro_tailwinds\": [\n        \"The ongoing COVID-19 vaccination efforts and resulting decline in hospitalization rates are expected to boost consumer spending and overall economic activity.\"\n    ],\n    \"reasoning\": \"DETAILED SYNTHESIS:\n\n**Current Regime:** The current market environment is characterized by a moderate level of fear (VIX at 14.5), artificially suppressed interest rates (10Y Yield at 1.87%), and a stable trend direction with moderate strength in the US Dollar index (DXY at 92.5).\n\n**Impact on this asset class:** The low VIX and high S&P 500 index suggest that investors are moderately optimistic about future returns, which could imply a positive impact on stock valuations. However, the artificially suppressed interest rates may lead to decreased discount rates and valuations for assets sensitive to interest rates.\n\n**Forward outlook:** Considering the moderate level of fear and stable trend direction in the US Dollar index, it is likely that investors will continue to take on some risk and invest in assets with moderate potential returns. However, the ongoing recession risks in Europe may lead to decreased economic growth and increased market volatility.\n```"
+    },
+    "philosopher": {
+      "agent": "Philosopher Agent",
+      "timestamp": "2026-01-04T16:34:13.043248",
+      "output": {
+        "alignment": "High",
+        "factors_analyzed": [],
+        "ethical_strengths": [],
+        "ethical_concerns": [],
+        "long_term_outlook": "Unknown"
+      },
+      "confidence": 60,
+      "data_quality": "High",
+      "fallback_used": false,
+      "analysis": "**Alignment Analysis for Vodafone Idea Limited (IDEA.NS)**\n\n{\n  \"alignment\": \"Medium\",\n  \"confidence\": 60,\n  \"factors_analyzed\": [\n    {\n      \"factor\": \"Moat Sustainability\",\n      \"assessment\": \"Negative\",\n      \"reasoning\": \"The company's current financial struggles, including negative margins and poor return on equity, suggest that its business model may not be durable for the long term.\"\n    },\n    {\n      \"factor\": \"Governance\",\n      \"assessment\": \"Neutral\",\n      \"reasoning\": \"The company has significant governance concerns due to its financial struggles, but there is an opportunity for ethical innovation through AI technologies if managed correctly.\"\n    },\n    {\n      \"factor\": \"Social License\",\n      \"assessment\": \"Positive\",\n      \"reasoning\": \"As a provider of essential communication services, the company plays a crucial role in society\u2019s connectivity needs, which provides a strong social license to operate.\"\n    },\n    {\n      \"factor\": \"Negative Externalities\",\n      \"assessment\": \"Neutral\",\n      \"reasoning\": \"The company's financial struggles may lead to environmental and social impacts if not managed correctly, but there is an opportunity for innovation through AI technologies to minimize these impacts.\"\n    }\n  ],\n  \"ethical_strengths\": [\"Opportunity for ethical innovation through AI technologies\"],\n  \"ethical_concerns\": [\"Negative margins and poor return on equity\", \"Significant governance concerns\"],\n  \"long_term_outlook\": \"The company appears to be a 'Cigar Butt' - a cheap investment with significant risks that may pay off if managed correctly over the long term.\",\n  \"reasoning\": \"**Philosophical Treatise**\n\nVodafone Idea Limited's case highlights the tension between profit and principle. As a provider of essential communication services, the company plays a crucial role in society\u2019s connectivity needs. However, its current financial struggles highlight significant ethical concerns around governance and sustainability.\n\nThe negative margins and poor return on equity suggest that it may not have the resilience to withstand long-term market pressures without substantial reforms or innovative solutions. While there is an opportunity for ethical innovation through AI technologies, careful management is required to ensure benefits are equitably distributed and environmental impacts are minimized.\n\nFor now, Vodafone Idea Limited appears to be a 'Cigar Butt' - a cheap investment with significant risks that may pay off if managed correctly over the long term.\"\n\n**Quantitative Analysis Report**\n\nThe Quant analysis highlights several critical issues, including:\n\n* Negative margins of -58.6% indicate severe losses\n* ROE of -2.07% is significantly lower than the industry average and raises concerns about profitability\n* Current ratio is relatively low (0.46), indicating a liquidity position that may be difficult to maintain\n* Revenue growth rate is 2.3%, which is relatively low compared to industry standards\n\nOverall, while there are opportunities for ethical innovation through AI technologies, Vodafone Idea Limited's financial struggles and governance concerns raise significant red flags about its alignment with sustainable wealth creation and ethical principles.\""
+    }
+  },
+  "match_score": 52,
+  "match_result": {
+    "score": 52,
+    "recommendation": "Hold",
+    "action_if_owned": "Hold",
+    "action_if_not_owned": "Wait",
+    "fit_reasons": [
+      "Positive price trend"
+    ],
+    "concern_reasons": [
+      "High downside risk scenarios identified",
+      "Low profit margins (-58.6%)"
+    ],
+    "summary": "This asset has a moderate match (52%) with mixed signals. Key strength: positive price trend. Key concern: high downside risk scenarios identified. Hold if you own it; don't add now.",
+    "breakdown": {
+      "fundamental": 50.0,
+      "macro": 50.0,
+      "philosophy": 85.0,
+      "risk": 25.0,
+      "dna_match": 65.0
+    }
+  },
+  "coach_verdict": {
+    "agent": "Coach Synthesizer",
+    "timestamp": "2026-01-04T16:34:30.910131",
+    "output": {
+      "verdict": "Vodafone Idea Limited presents a mixed picture for investors.",
+      "action": "Hold",
+      "position_size": "Half",
+      "agent_synthesis": [
+        {
+          "agent": "PHILOSOPHER",
+          "signal": "Neutral",
+          "weight_applied": 0.4,
+          "key_insight": "The company's negative margins and poor return on equity suggest that it may not have the resilience to withstand long-term market pressures without substantial reforms or innovative solutions."
+        },
+        {
+          "agent": "QUANT",
+          "signal": "Neutral",
+          "weight_applied": 0.3,
+          "key_insight": "The company's financial struggles are evident in its negative margins, poor return on equity, and low current ratio."
+        },
+        {
+          "agent": "REGRET",
+          "signal": "Negative",
+          "weight_applied": 0.3,
+          "key_insight": "A DETAILED SIMULATION of a failed investment reveals significant setbacks, including management scandals, operational inefficiencies, and regulatory changes that erode market share."
+        }
+      ],
+      "agreements": [
+        "The company's financial struggles highlight significant ethical concerns around governance and sustainability."
+      ],
+      "conflicts": [
+        "Philosopher suggests 'Cigar Butt' potential, but Quant notes severe losses and low profitability."
+      ],
+      "key_risks": [
+        "Negative margins and poor return on equity",
+        "Regulatory changes and lack of investment in AI technologies"
+      ],
+      "catalysts": [
+        "Innovative solutions and careful management could turnaround fortunes",
+        "Ethical innovation through AI technologies presents opportunities for growth and improvement"
+      ]
+    },
+    "confidence": 60,
+    "data_quality": "High",
+    "fallback_used": false,
+    "analysis": "**FINAL THESIS**\n\nThe Investment Case: Vodafone Idea Limited (IDEA.NS) presents a mixed picture for investors. While it has the potential to turnaround its fortunes through innovative solutions and careful management, its current financial struggles and poor return on equity raise significant concerns around governance and sustainability.\n\nThe Risks: The company's negative margins, poor return on equity, and low current ratio indicate severe losses and reduced profitability. Regulatory changes, lack of investment in AI technologies, and aggressive pricing strategies by major multinational corporations (MNCs) entering the Indian market with advanced technology and lower costs significantly erode IDEA's market share.\n\nThe Strategy: We recommend a cautious approach to investing in Vodafone Idea Limited. Given its current financial struggles and poor return on equity, we suggest a position size of \"Half\" to mitigate potential losses. However, if managed correctly over the long term, the company may pay off as a 'Cigar Butt' - a cheap investment with significant risks.\n\n**OUTPUT**\n\n{\n    \"verdict\": \"Vodafone Idea Limited presents a mixed picture for investors.\",\n    \"action\": \"Hold\",\n    \"confidence\": 60,\n    \"position_size\": \"Half\",\n    \"agent_synthesis\": [\n        {\n            \"agent\": \"PHILOSOPHER\",\n            \"signal\": \"Neutral\",\n            \"weight_applied\": 0.4,\n            \"key_insight\": \"The company's negative margins and poor return on equity suggest that it may not have the resilience to withstand long-term market pressures without substantial reforms or innovative solutions.\"\n        },\n        {\n            \"agent\": \"QUANT\",\n            \"signal\": \"Neutral\",\n            \"weight_applied\": 0.3,\n            \"key_insight\": \"The company's financial struggles are evident in its negative margins, poor return on equity, and low current ratio.\"\n        },\n        {\n            \"agent\": \"REGRET\",\n            \"signal\": \"Negative\",\n            \"weight_applied\": 0.3,\n            \"key_insight\": \"A DETAILED SIMULATION of a failed investment reveals significant setbacks, including management scandals, operational inefficiencies, and regulatory changes that erode market share.\"\n        }\n    ],\n    \"agreements\": [\"The company's financial struggles highlight significant ethical concerns around governance and sustainability.\"],\n    \"conflicts\": [\"Philosopher suggests 'Cigar Butt' potential, but Quant notes severe losses and low profitability.\"],\n    \"key_risks\": [\n        \"Negative margins and poor return on equity\",\n        \"Regulatory changes and lack of investment in AI technologies\"\n    ],\n    \"catalysts\": [\n        \"Innovative solutions and careful management could turnaround fortunes\",\n        \"Ethical innovation through AI technologies presents opportunities for growth and improvement\"\n    ]\n}"
+  },
+  "market_data": {
+    "source": "YahooQuery (Live)",
+    "current_price": 11.78,
+    "sma_50": 10.59,
+    "sma_200": 8.18,
+    "trend_signal": "Strong Uptrend (Bullish)",
+    "rsi_14": 55.58,
+    "rsi_status": "Neutral",
+    "volatility_annualized": "56.21%",
+    "volatility_raw": 0.5621,
+    "high_52w": 12.06,
+    "low_52w": 6.15,
+    "pct_from_52w_high": -2.32,
+    "history": [
+      {
+        "date": "2025-08-12",
+        "price": 6.47,
+        "sma_50": 7.08
+      },
+      {
+        "date": "2025-08-13",
+        "price": 6.36,
+        "sma_50": 7.07
+      },
+      {
+        "date": "2025-08-14",
+        "price": 6.15,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-08-18",
+        "price": 6.46,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-08-19",
+        "price": 6.58,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-08-20",
+        "price": 6.79,
+        "sma_50": 7.03
+      },
+      {
+        "date": "2025-08-21",
+        "price": 6.55,
+        "sma_50": 7.02
+      },
+      {
+        "date": "2025-08-22",
+        "price": 7.07,
+        "sma_50": 7.03
+      },
+      {
+        "date": "2025-08-25",
+        "price": 7.4,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-08-26",
+        "price": 6.71,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-08-28",
+        "price": 6.57,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-08-29",
+        "price": 6.49,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-01",
+        "price": 6.54,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-09-02",
+        "price": 6.51,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-09-03",
+        "price": 6.57,
+        "sma_50": 7.05
+      },
+      {
+        "date": "2025-09-04",
+        "price": 6.61,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-05",
+        "price": 7.23,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-08",
+        "price": 7.29,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-09",
+        "price": 7.27,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-10",
+        "price": 7.32,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-11",
+        "price": 7.41,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-12",
+        "price": 7.66,
+        "sma_50": 7.04
+      },
+      {
+        "date": "2025-09-15",
+        "price": 8.14,
+        "sma_50": 7.06
+      },
+      {
+        "date": "2025-09-16",
+        "price": 7.94,
+        "sma_50": 7.07
+      },
+      {
+        "date": "2025-09-17",
+        "price": 7.77,
+        "sma_50": 7.08
+      },
+      {
+        "date": "2025-09-18",
+        "price": 7.84,
+        "sma_50": 7.09
+      },
+      {
+        "date": "2025-09-19",
+        "price": 8.4,
+        "sma_50": 7.11
+      },
+      {
+        "date": "2025-09-22",
+        "price": 8.39,
+        "sma_50": 7.13
+      },
+      {
+        "date": "2025-09-23",
+        "price": 8.72,
+        "sma_50": 7.16
+      },
+      {
+        "date": "2025-09-24",
+        "price": 8.59,
+        "sma_50": 7.18
+      },
+      {
+        "date": "2025-09-25",
+        "price": 8.68,
+        "sma_50": 7.2
+      },
+      {
+        "date": "2025-09-26",
+        "price": 8.02,
+        "sma_50": 7.2
+      },
+      {
+        "date": "2025-09-29",
+        "price": 8.24,
+        "sma_50": 7.21
+      },
+      {
+        "date": "2025-09-30",
+        "price": 8.13,
+        "sma_50": 7.22
+      },
+      {
+        "date": "2025-10-01",
+        "price": 8.52,
+        "sma_50": 7.24
+      },
+      {
+        "date": "2025-10-03",
+        "price": 8.82,
+        "sma_50": 7.27
+      },
+      {
+        "date": "2025-10-06",
+        "price": 8.47,
+        "sma_50": 7.29
+      },
+      {
+        "date": "2025-10-07",
+        "price": 9.18,
+        "sma_50": 7.33
+      },
+      {
+        "date": "2025-10-08",
+        "price": 9.04,
+        "sma_50": 7.36
+      },
+      {
+        "date": "2025-10-09",
+        "price": 9.03,
+        "sma_50": 7.4
+      },
+      {
+        "date": "2025-10-10",
+        "price": 9.04,
+        "sma_50": 7.44
+      },
+      {
+        "date": "2025-10-13",
+        "price": 8.73,
+        "sma_50": 7.47
+      },
+      {
+        "date": "2025-10-14",
+        "price": 8.36,
+        "sma_50": 7.5
+      },
+      {
+        "date": "2025-10-15",
+        "price": 8.75,
+        "sma_50": 7.54
+      },
+      {
+        "date": "2025-10-16",
+        "price": 8.85,
+        "sma_50": 7.58
+      },
+      {
+        "date": "2025-10-17",
+        "price": 8.7,
+        "sma_50": 7.62
+      },
+      {
+        "date": "2025-10-20",
+        "price": 8.94,
+        "sma_50": 7.66
+      },
+      {
+        "date": "2025-10-21",
+        "price": 9.0,
+        "sma_50": 7.71
+      },
+      {
+        "date": "2025-10-23",
+        "price": 9.52,
+        "sma_50": 7.77
+      },
+      {
+        "date": "2025-10-24",
+        "price": 9.62,
+        "sma_50": 7.83
+      },
+      {
+        "date": "2025-10-27",
+        "price": 9.97,
+        "sma_50": 7.9
+      },
+      {
+        "date": "2025-10-28",
+        "price": 9.44,
+        "sma_50": 7.96
+      },
+      {
+        "date": "2025-10-29",
+        "price": 9.36,
+        "sma_50": 8.02
+      },
+      {
+        "date": "2025-10-30",
+        "price": 8.73,
+        "sma_50": 8.07
+      },
+      {
+        "date": "2025-10-31",
+        "price": 8.73,
+        "sma_50": 8.11
+      },
+      {
+        "date": "2025-11-03",
+        "price": 9.54,
+        "sma_50": 8.17
+      },
+      {
+        "date": "2025-11-04",
+        "price": 9.41,
+        "sma_50": 8.23
+      },
+      {
+        "date": "2025-11-05",
+        "price": 9.41,
+        "sma_50": 8.27
+      },
+      {
+        "date": "2025-11-06",
+        "price": 9.27,
+        "sma_50": 8.31
+      },
+      {
+        "date": "2025-11-07",
+        "price": 9.61,
+        "sma_50": 8.37
+      },
+      {
+        "date": "2025-11-10",
+        "price": 9.5,
+        "sma_50": 8.43
+      },
+      {
+        "date": "2025-11-11",
+        "price": 10.24,
+        "sma_50": 8.5
+      },
+      {
+        "date": "2025-11-12",
+        "price": 10.37,
+        "sma_50": 8.58
+      },
+      {
+        "date": "2025-11-13",
+        "price": 10.47,
+        "sma_50": 8.66
+      },
+      {
+        "date": "2025-11-14",
+        "price": 10.94,
+        "sma_50": 8.74
+      },
+      {
+        "date": "2025-11-17",
+        "price": 10.93,
+        "sma_50": 8.83
+      },
+      {
+        "date": "2025-11-18",
+        "price": 10.74,
+        "sma_50": 8.9
+      },
+      {
+        "date": "2025-11-19",
+        "price": 10.69,
+        "sma_50": 8.97
+      },
+      {
+        "date": "2025-11-20",
+        "price": 10.17,
+        "sma_50": 9.03
+      },
+      {
+        "date": "2025-11-21",
+        "price": 9.97,
+        "sma_50": 9.08
+      },
+      {
+        "date": "2025-11-24",
+        "price": 9.98,
+        "sma_50": 9.13
+      },
+      {
+        "date": "2025-11-25",
+        "price": 10.05,
+        "sma_50": 9.18
+      },
+      {
+        "date": "2025-11-26",
+        "price": 10.08,
+        "sma_50": 9.22
+      },
+      {
+        "date": "2025-11-27",
+        "price": 10.11,
+        "sma_50": 9.26
+      },
+      {
+        "date": "2025-11-28",
+        "price": 9.96,
+        "sma_50": 9.3
+      },
+      {
+        "date": "2025-12-01",
+        "price": 9.93,
+        "sma_50": 9.35
+      },
+      {
+        "date": "2025-12-02",
+        "price": 10.13,
+        "sma_50": 9.38
+      },
+      {
+        "date": "2025-12-03",
+        "price": 10.55,
+        "sma_50": 9.42
+      },
+      {
+        "date": "2025-12-04",
+        "price": 10.68,
+        "sma_50": 9.46
+      },
+      {
+        "date": "2025-12-05",
+        "price": 10.8,
+        "sma_50": 9.51
+      },
+      {
+        "date": "2025-12-08",
+        "price": 10.29,
+        "sma_50": 9.54
+      },
+      {
+        "date": "2025-12-09",
+        "price": 10.74,
+        "sma_50": 9.59
+      },
+      {
+        "date": "2025-12-10",
+        "price": 10.72,
+        "sma_50": 9.64
+      },
+      {
+        "date": "2025-12-11",
+        "price": 11.25,
+        "sma_50": 9.71
+      },
+      {
+        "date": "2025-12-12",
+        "price": 11.64,
+        "sma_50": 9.77
+      },
+      {
+        "date": "2025-12-15",
+        "price": 11.35,
+        "sma_50": 9.82
+      },
+      {
+        "date": "2025-12-16",
+        "price": 11.25,
+        "sma_50": 9.88
+      },
+      {
+        "date": "2025-12-17",
+        "price": 11.13,
+        "sma_50": 9.91
+      },
+      {
+        "date": "2025-12-18",
+        "price": 11.3,
+        "sma_50": 9.96
+      },
+      {
+        "date": "2025-12-19",
+        "price": 11.96,
+        "sma_50": 10.02
+      },
+      {
+        "date": "2025-12-22",
+        "price": 11.85,
+        "sma_50": 10.07
+      },
+      {
+        "date": "2025-12-23",
+        "price": 12.01,
+        "sma_50": 10.14
+      },
+      {
+        "date": "2025-12-24",
+        "price": 12.02,
+        "sma_50": 10.21
+      },
+      {
+        "date": "2025-12-25",
+        "price": 12.02,
+        "sma_50": 10.28
+      },
+      {
+        "date": "2025-12-26",
+        "price": 11.94,
+        "sma_50": 10.34
+      },
+      {
+        "date": "2025-12-29",
+        "price": 11.96,
+        "sma_50": 10.41
+      },
+      {
+        "date": "2025-12-30",
+        "price": 12.06,
+        "sma_50": 10.47
+      },
+      {
+        "date": "2025-12-31",
+        "price": 10.76,
+        "sma_50": 10.5
+      },
+      {
+        "date": "2026-01-01",
+        "price": 11.6,
+        "sma_50": 10.54
+      },
+      {
+        "date": "2026-01-02",
+        "price": 11.78,
+        "sma_50": 10.59
+      }
+    ],
+    "data_points": 252,
+    "_anomalies": [],
+    "_corrections": []
+  }
+}

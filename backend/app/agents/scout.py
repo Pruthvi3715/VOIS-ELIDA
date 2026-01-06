@@ -383,9 +383,66 @@ class ScoutAgent:
             return data
             
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ Error fetching financials for {asset_id}: {e}")
-            print(f"[Scout Agent] 📦 Using fallback mock data")
+            print(f"[Scout Agent] ⚠️ YahooQuery financials failed: {e}")
             
+            # Fallback: Try yfinance
+            try:
+                print(f"[Scout Agent] 🔄 Attempting yfinance fallback for financials...")
+                import yfinance as yf
+                ticker = yf.Ticker(asset_id)
+                info = ticker.info
+                
+                if not info or 'regularMarketPrice' not in info:
+                    raise ValueError("yfinance returned empty data")
+                
+                # Construct data from yfinance info
+                data = {
+                    "source": "yfinance (Fallback)",
+                    "symbol": asset_id,
+                    "current_price": info.get("currentPrice") or info.get("regularMarketPrice"),
+                    "currency": info.get("currency", "USD"),
+                    
+                    # Valuation
+                    "pe_ratio": info.get("trailingPE"),
+                    "forward_pe": info.get("forwardPE"),
+                    "peg_ratio": info.get("pegRatio"),
+                    "price_to_book": info.get("priceToBook"),
+                    "market_cap": f"{info.get('marketCap', 0) / 1e9:.2f}B" if info.get('marketCap') else "N/A",
+                    
+                    # Profitability
+                    "profit_margins": info.get("profitMargins"),
+                    "return_on_equity": info.get("returnOnEquity"),
+                    "return_on_assets": info.get("returnOnAssets"),
+                    
+                    # Health
+                    "debt_to_equity": info.get("debtToEquity"),
+                    "current_ratio": info.get("currentRatio"),
+                    "free_cash_flow": info.get("freeCashflow"),
+                    
+                    # Growth
+                    "revenue_growth": info.get("revenueGrowth"),
+                    "earnings_growth": info.get("earningsGrowth"),
+                    
+                    # Info
+                    "sector": info.get("sector", "Unknown"),
+                    "industry": info.get("industry", "Unknown"),
+                    "company_name": info.get("longName", asset_id),
+                    "summary": info.get("longBusinessSummary", "")[:500] + "..."
+                }
+                
+                print(f"[Scout Agent] ✅ yfinance fallback successful")
+                
+                # Count valid metrics
+                valid_metrics = sum(1 for v in data.values() if v is not None and v != "N/A")
+                data["metrics_available"] = valid_metrics
+                data["metrics_total"] = len(data) - 3
+                return data
+                
+            except Exception as yf_e:
+                print(f"[Scout Agent] ❌ yfinance fallback failed: {yf_e}")
+            
+            # Final Fallback: MOCK
+            print(f"[Scout Agent] 📦 Using synthetic mock data")
             return ScoutAgent._get_mock_financials(asset_id)
 
     @staticmethod
@@ -425,28 +482,46 @@ class ScoutAgent:
         Calculate technical indicators with enhanced error handling.
         """
         try:
-            ticker = Ticker(asset_id)
-            hist = ticker.history(period="1y")
-            
-            if isinstance(hist, dict) or hist.empty:
-                raise ValueError("No historical data")
-            
-            # Handle MultiIndex
-            if 'symbol' in hist.index.names:
-                df = hist.xs(asset_id, level='symbol')
-            else:
-                df = hist
-
-            if df.empty or len(df) < 50:
-                raise ValueError("Insufficient historical data")
-
-            # Determine close column
-            close_col = 'close' if 'close' in df.columns else 'adjclose'
-            if close_col not in df.columns:
-                if 'Close' in df.columns:
-                    close_col = 'Close'
+            # Primary: YahooQuery
+            try:
+                ticker = Ticker(asset_id)
+                hist = ticker.history(period="1y")
+                
+                if isinstance(hist, dict) or hist.empty:
+                    raise ValueError("No historical data")
+                
+                # Handle MultiIndex
+                if 'symbol' in hist.index.names:
+                    df = hist.xs(asset_id, level='symbol')
                 else:
-                    raise ValueError("No Close price column found")
+                    df = hist
+
+                if df.empty or len(df) < 50:
+                    raise ValueError("Insufficient historical data")
+
+                # Determine close column
+                close_col = 'close' if 'close' in df.columns else 'adjclose'
+                if close_col not in df.columns:
+                    if 'Close' in df.columns:
+                        close_col = 'Close'
+                    else:
+                        raise ValueError("No Close price column found")
+                        
+                source = "YahooQuery (Live)"
+
+            except Exception as yq_e:
+                print(f"[Scout Agent] ⚠️ YahooQuery technicals failed: {yq_e}")
+                # Fallback: yfinance
+                import yfinance as yf
+                print(f"[Scout Agent] 🔄 Attempting yfinance fallback for technicals...")
+                ticker = yf.Ticker(asset_id)
+                df = ticker.history(period="1y")
+                
+                if df.empty or len(df) < 50:
+                    raise ValueError("yfinance returned empty technicals")
+                
+                close_col = 'Close'
+                source = "yfinance (Fallback)"
 
             close = df[close_col]
             
@@ -475,6 +550,10 @@ class ScoutAgent:
             rs = gain / loss
             rsi = (100 - (100 / (1 + rs))).iloc[-1]
             
+            # Safely handle NaN RSI (e.g. flat price)
+            if pd.isna(rsi):
+                rsi = 50.0
+            
             rsi_status = "Neutral"
             if rsi > 70:
                 rsi_status = "Overbought"
@@ -502,7 +581,7 @@ class ScoutAgent:
                 if hasattr(idx, 'date'):
                     date_str = str(idx.date())
                 else:
-                    date_str = str(idx)
+                    date_str = str(idx).split(" ")[0]
                     
                 history.append({
                     "date": date_str,
@@ -510,9 +589,26 @@ class ScoutAgent:
                     "sma_50": round(float(row['sma_50']), 2) if not pd.isna(row['sma_50']) else None
                 })
 
+                        # Recent price changes (for data latency awareness)
+            price_1d_ago = close.iloc[-2] if len(close) >= 2 else current_price
+            price_5d_ago = close.iloc[-6] if len(close) >= 6 else current_price
             
+            price_change_1d = ((current_price - price_1d_ago) / price_1d_ago) * 100 if price_1d_ago else 0
+            price_change_5d = ((current_price - price_5d_ago) / price_5d_ago) * 100 if price_5d_ago else 0
+            
+            # Generate price alert for significant moves
+            price_alert = None
+            if price_change_5d <= -5:
+                price_alert = f"⚠️ ALERT: Price dropped {abs(price_change_5d):.1f}% in last 5 days"
+            elif price_change_5d >= 5:
+                price_alert = f"📈 ALERT: Price surged {price_change_5d:.1f}% in last 5 days"
+            elif price_change_1d <= -3:
+                price_alert = f"⚠️ ALERT: Price dropped {abs(price_change_1d):.1f}% today"
+            elif price_change_1d >= 3:
+                price_alert = f"📈 ALERT: Price surged {price_change_1d:.1f}% today"
+
             return {
-                "source": "YahooQuery (Live)",
+                "source": source,
                 "current_price": round(float(current_price), 2),
                 "sma_50": round(float(sma_50), 2),
                 "sma_200": round(float(sma_200), 2) if sma_200 else None,
@@ -524,6 +620,10 @@ class ScoutAgent:
                 "high_52w": round(float(high_52w), 2),
                 "low_52w": round(float(low_52w), 2),
                 "pct_from_52w_high": round(float(pct_from_high), 2),
+                # NEW: Recent price changes
+                "price_change_1d": round(float(price_change_1d), 2),
+                "price_change_5d": round(float(price_change_5d), 2),
+                "price_alert": price_alert,
                 "history": history,
                 "data_points": len(close)
             }

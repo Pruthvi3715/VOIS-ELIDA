@@ -98,21 +98,48 @@ const AgentCard: React.FC<AgentCardProps> = ({
     const Icon = agentIcons[name] || Brain;
     const colorClass = agentColors[name] || 'from-indigo-500 to-violet-500';
 
-    // Text Cleaning Logic
-    const cleanAnalysis = (text: string) => {
+    // Text Cleaning Logic - strips JSON and formats headers
+    const cleanAnalysis = (text: string): string[] => {
         if (!text) return [];
-        // Remove JSON artifacts like ```json { ... } ```
-        let cleaned = text.replace(/```json[\s\S]*?```/g, '')
-            .replace(/```[\s\S]*?```/g, '')
-            .replace(/\{"score":[\s\S]*?\}/g, ''); // aggressive json removal
+
+        let cleaned = text;
+
+        // Remove markdown code blocks (json, plain, etc.)
+        cleaned = cleaned.replace(/```(?:json|javascript|python)?[\s\S]*?```/gi, '');
+
+        // Remove inline JSON objects like { "score": 65, ... }
+        // This pattern matches balanced braces with JSON-like content
+        cleaned = cleaned.replace(/\{[\s\S]*?"(?:score|confidence|metrics|reasoning|name|probability)"[\s\S]*?\}/g, '');
+
+        // Remove any remaining { } blocks that look like JSON (contain quotes and colons)
+        cleaned = cleaned.replace(/\{[^}]*"[^"]*"\s*:[^}]*\}/g, '');
+
+        // Remove orphaned JSON arrays like ["P/E", "ROE", ...]
+        cleaned = cleaned.replace(/\[[\s\S]*?"[^"]*"[\s\S]*?\]/g, '');
+
+        // Clean up markdown headers to just text (remove ** markers)
+        cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
 
         // Remove "Paragraph X -" headers
-        cleaned = cleaned.replace(/Paragraph \d+ -/g, '');
+        cleaned = cleaned.replace(/Paragraph \d+\s*[-–—]?\s*/gi, '');
 
-        // Split by newlines and filter empty
-        return cleaned.split('\n\n')
+        // Remove lines that are just punctuation or very short
+        cleaned = cleaned.replace(/^[\s\-–—_*#=]+$/gm, '');
+
+        // Clean up excessive whitespace
+        cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+        cleaned = cleaned.trim();
+
+        // Split by double newlines and filter
+        return cleaned.split(/\n\n+/)
             .map(p => p.trim())
-            .filter(p => p.length > 20); // Filter out short artifacts
+            .filter(p => {
+                // Filter out short fragments and JSON-like strings
+                if (p.length < 25) return false;
+                if (p.startsWith('{') || p.startsWith('[')) return false;
+                if (p.includes('": ') && p.includes(',')) return false; // JSON-like
+                return true;
+            });
     };
 
     const analysisParagraphs = cleanAnalysis(analysis);

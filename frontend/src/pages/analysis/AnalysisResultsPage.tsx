@@ -6,6 +6,16 @@ import { ArrowLeft, Play, Dna, TrendingUp, AlertTriangle, Target, Award, Save, C
 import { useAuth } from '../../context/AuthContext';
 import { AnalysisLoadingScreen, defaultSteps } from '../../components/AnalysisLoadingScreen';
 import AgentCard from '../../components/AgentCard';
+import PriceHistoryChart from '../../components/PriceHistoryChart.tsx';
+
+// Currency symbol based on stock exchange
+const getCurrencySymbol = (ticker: string): string => {
+    const upperTicker = ticker.toUpperCase();
+    if (upperTicker.endsWith('.NS') || upperTicker.endsWith('.BO')) {
+        return '₹';
+    }
+    return '$';
+};
 
 interface AnalysisResult {
     match_score: number;
@@ -55,7 +65,7 @@ const AnalysisResultsPage: React.FC = () => {
         if (loading && currentStep < defaultSteps.length - 1) {
             const timer = setTimeout(() => {
                 setCurrentStep(prev => Math.min(prev + 1, defaultSteps.length - 1));
-            }, 8000 + Math.random() * 5000); // Realistic timing for AI agents
+            }, 1200 + Math.random() * 800); // Faster, snappy progress
             return () => clearTimeout(timer);
         }
     }, [loading, currentStep]);
@@ -287,6 +297,16 @@ const AnalysisResultsPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Price History Chart */}
+                    {(analysis.market_data?.history || analysis.market_data?.technicals?.history) && (
+                        <div className="mb-8">
+                            <PriceHistoryChart
+                                data={analysis.market_data?.history || analysis.market_data?.technicals?.history}
+                                currencySymbol={getCurrencySymbol(symbol || '')}
+                            />
+                        </div>
+                    )}
 
                     {/* Agent Cards Grid */}
                     <div>

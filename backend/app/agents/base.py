@@ -13,18 +13,38 @@ except ImportError:
 
 class BaseAgent:
     """
-    Enhanced Base Agent with Ollama + Gemini support.
+    Enhanced Base Agent with multi-provider LLM support.
     
     LLM Provider Selection (via LLM_PROVIDER env var):
-    - 'auto': Ollama first -> Gemini fallback (default)
-    - 'ollama': Ollama only
-    - 'gemini': Gemini only
+    - 'auto': Groq first -> Ollama -> Gemini fallback
+    - 'groq': Groq only (fast cloud, llama-3.3-70b)
+    - 'ollama': Ollama only (local)
+    - 'gemini': Gemini only (Google cloud)
     """
     
-    # Configurable via environment
-    OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:latest")
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    # Configurable via environment (read at call time for hot-reload)
+    OLLAMA_URL = "http://localhost:11434/api/generate"
+    GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+    
+    @property
+    def ollama_model(self):
+        """Read OLLAMA_MODEL from env at call time for hot-reload support."""
+        return os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    
+    @property
+    def gemini_model_name(self):
+        """Read GEMINI_MODEL from env at call time."""
+        return os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    
+    @property
+    def groq_model(self):
+        """Read GROQ_MODEL from env at call time."""
+        return os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    
+    @property
+    def groq_api_key(self):
+        """Read GROQ_API_KEY from env at call time."""
+        return os.getenv("GROQ_API_KEY")
     
     # Token tracking (class level)
     _token_usage = {}
@@ -37,6 +57,7 @@ class BaseAgent:
         
         # LLM Provider selection
         self.llm_provider = os.getenv("LLM_PROVIDER", "auto").lower()
+        self.use_groq = self.llm_provider in ("auto", "groq")
         self.use_ollama = self.llm_provider in ("auto", "ollama")
         self.use_gemini = self.llm_provider in ("auto", "gemini")
         
@@ -44,28 +65,34 @@ class BaseAgent:
         if self.name not in BaseAgent._token_usage:
             BaseAgent._token_usage[self.name] = {"input": 0, "output": 0, "calls": 0}
         
+        # Check Groq availability
+        if self.use_groq and self.groq_api_key:
+            print(f"[{self.name}] ✅ Groq Available ({self.groq_model})")
+        elif self.llm_provider == "groq":
+            print(f"[{self.name}] ❌ Groq requires GROQ_API_KEY in .env!")
+            self.use_groq = False
+        
         # Check Ollama availability
         if self.use_ollama:
             try:
                 resp = requests.get("http://localhost:11434/api/tags", timeout=2)
                 if resp.status_code == 200:
-                    print(f"[{self.name}] ✅ Ollama Available ({self.OLLAMA_MODEL})")
+                    if self.llm_provider == "ollama":
+                        print(f"[{self.name}] ✅ Ollama Available ({self.ollama_model})")
                 else:
                     self.use_ollama = False
             except:
                 self.use_ollama = False
                 if self.llm_provider == "ollama":
                     print(f"[{self.name}] ❌ Ollama required but not running!")
-                else:
-                    print(f"[{self.name}] ⚠️ Ollama not running, will use Gemini")
         
         # Initialize Gemini
         if self.use_gemini and self.api_key and genai:
             try:
                 genai.configure(api_key=self.api_key)
-                self.gemini_model = genai.GenerativeModel(self.GEMINI_MODEL)
+                self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
                 if self.llm_provider == "gemini":
-                    print(f"[{self.name}] ✅ Gemini ({self.GEMINI_MODEL}) Initialized.")
+                    print(f"[{self.name}] ✅ Gemini ({self.gemini_model_name}) Initialized.")
             except Exception as e:
                 print(f"[{self.name}] ❌ Failed to init Gemini: {e}")
 
@@ -73,17 +100,69 @@ class BaseAgent:
         """Rough token estimation (~4 chars per token for English)."""
         return len(text) // 4
 
+    def _call_groq(self, prompt: str, max_retries: int = 3) -> Optional[str]:
+        """Call Groq API with rate limit handling and retries."""
+        import time
+        
+        if not self.groq_api_key:
+            return None
+        
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    self.GROQ_URL,
+                    headers={
+                        "Authorization": f"Bearer {self.groq_api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": self.groq_model,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.7,
+                        "max_tokens": 2048
+                    },
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    return response.json()["choices"][0]["message"]["content"]
+                
+                elif response.status_code == 429:
+                    # Rate limit - extract wait time or use exponential backoff
+                    wait_time = (2 ** attempt) * 2  # 2s, 4s, 8s
+                    retry_after = response.headers.get("retry-after")
+                    if retry_after:
+                        wait_time = min(int(retry_after), 30)  # Cap at 30s
+                    
+                    print(f"[{self.name}] ⏳ Groq rate limit. Waiting {wait_time}s (attempt {attempt+1}/{max_retries})...")
+                    time.sleep(wait_time)
+                    continue
+                    
+                else:
+                    print(f"[{self.name}] ⚠️ Groq error: {response.status_code} - {response.text[:100]}")
+                    return None
+                    
+            except Exception as e:
+                print(f"[{self.name}] ⚠️ Groq error: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2)
+                    continue
+                return None
+        
+        print(f"[{self.name}] ❌ Groq rate limit exceeded after {max_retries} retries")
+        return None
+
     def _call_ollama(self, prompt: str) -> Optional[str]:
         """Call Ollama local LLM."""
         try:
             response = requests.post(
                 self.OLLAMA_URL,
                 json={
-                    "model": self.OLLAMA_MODEL,
+                    "model": self.ollama_model,  # Now reads from env at call time
                     "prompt": prompt,
                     "stream": False
                 },
-                timeout=120  # 2 min timeout for slower machines
+                timeout=300  # 5 min timeout for larger models (14B)
             )
             if response.status_code == 200:
                 return response.json().get("response", "")
@@ -125,7 +204,7 @@ class BaseAgent:
         max_retries: int = 3
     ) -> str:
         """
-        Calls LLM with fallback strategy: Ollama -> Gemini -> Rule-based Fallback.
+        Calls LLM with fallback strategy: Groq -> Ollama -> Gemini -> Rule-based Fallback.
         """
         full_prompt = f"System: {system_prompt}\n\nUser: {prompt}"
         input_tokens = self._estimate_tokens(full_prompt)
@@ -133,9 +212,19 @@ class BaseAgent:
         result = None
         provider_used = None
         
-        # 1. Try Ollama (if configured)
-        if self.use_ollama:
-            print(f"[{self.name}] 🦙 Calling Ollama ({self.OLLAMA_MODEL})...")
+        # 1. Try Groq first (fast cloud)
+        if self.use_groq and self.groq_api_key:
+            print(f"[{self.name}] ⚡ Calling Groq ({self.groq_model})...")
+            result = self._call_groq(full_prompt)
+            if result:
+                provider_used = "groq"
+                print(f"[{self.name}] ✅ Groq Response")
+            else:
+                print(f"[{self.name}] ⚠️ Groq failed/empty.")
+        
+        # 2. Try Ollama (if configured and no result yet)
+        if not result and self.use_ollama:
+            print(f"[{self.name}] 🦙 Calling Ollama ({self.ollama_model})...")
             result = self._call_ollama(full_prompt)
             if result:
                 provider_used = "ollama"
@@ -143,14 +232,9 @@ class BaseAgent:
             else:
                 print(f"[{self.name}] ⚠️ Ollama failed/empty.")
 
-        # 2. Try Gemini (if enabled and no result yet)
+        # 3. Try Gemini (if enabled and no result yet)
         if not result and self.use_gemini:
-            # Only log if we tried Ollama and it failed, or if Gemini is first choice
-            if self.use_ollama: 
-                print(f"[{self.name}] 🔄 Falling back to Gemini...")
-            else:
-                print(f"[{self.name}] 🚀 Calling Gemini ({self.GEMINI_MODEL})...")
-                
+            print(f"[{self.name}] 🚀 Calling Gemini ({self.gemini_model_name})...")
             result = self._call_gemini(full_prompt, max_retries)
             if result:
                 provider_used = "gemini"

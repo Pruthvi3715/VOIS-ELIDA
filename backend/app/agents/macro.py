@@ -21,9 +21,18 @@ class MacroAgent(BaseAgent):
     def run(self, context: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Analyze macroeconomic indicators and determine market trend.
+        Region-aware: Uses India indicators for .NS/.BO stocks, US for others.
         """
         # Filter for macro data
         macro_data = [c for c in context if c.get("metadata", {}).get("type") == "macro"]
+        
+        # Detect region from asset_id in context
+        region = "US"  # Default
+        for c in context:
+            asset_id = c.get("metadata", {}).get("asset_id", "")
+            if asset_id.upper().endswith((".NS", ".BO")):
+                region = "INDIA"
+                break
         
         # Calculate data quality
         data_quality = self.calculate_data_quality(macro_data)
@@ -31,17 +40,37 @@ class MacroAgent(BaseAgent):
         # Prepare context
         context_str = "\n".join([str(c.get("content")) for c in macro_data])
         
+        # Region-specific prompt sections
+        if region == "INDIA":
+            indicators_section = """
+        INDICATORS TO ANALYZE (INDIA FOCUS - THIS IS AN INDIAN STOCK):
+        - India VIX: Cite specific level. Explain if it implies market fear or stability.
+        - RBI Repo Rate: Current rate and impact on borrowing costs and valuations.
+        - Nifty 50 / Sensex: Trend direction and strength of Indian market.
+        - INR/USD Exchange Rate: Currency strength and FII flow implications.
+        - Indian Inflation/GDP: Economic growth context.
+        
+        IMPORTANT: This is an INDIAN stock (.NS/.BO). Focus on INDIAN macro indicators.
+        Do NOT focus primarily on US indicators like S&P 500 or US Treasury Yields.
+        US markets can be mentioned as secondary context, but prioritize RBI policy, 
+        Nifty trends, and Indian economic data."""
+        else:
+            indicators_section = """
+        INDICATORS TO ANALYZE (US FOCUS):
+        - VIX: Cite specific level (e.g., 14.5). Explain if it implies complacency or fear.
+        - Rates (10Y Yield): Cite specific %. Explain impact on discount rates/valuations.
+        - S&P 500 / Market Indices: Trend direction and strength.
+        - DXY / Currency: Broader economic context.
+        - Fed Policy: Rate expectations and impact."""
+        
         prompt = f"""
         You are the Global Macroeconomic Analysis Agent.
 
         ROLE:
         Provide a DETAILED analysis of the market environment. Don't just list indicators; explain their INTERCONNECTION and IMPACT.
-
-        INDICATORS TO ANALYZE:
-        - VIX: Cite specific level (e.g., 14.5). Explain if it implies complacency or fear.
-        - Rates (10Y Yield): Cite specific %. Explain impact on discount rates/valuations.
-        - Market Indices: Trend direction and strength.
-        - Currency/GDP: Broader economic context.
+        
+        REGION: {region} ({"Indian Stock Exchange" if region == "INDIA" else "US Markets"})
+        {indicators_section}
 
         OUTPUT FORMAT (STRICT JSON):
         {{
@@ -52,13 +81,14 @@ class MacroAgent(BaseAgent):
             ],
             "macro_risks": ["Detailed sentence describing specific risk"],
             "macro_tailwinds": ["Detailed sentence describing positive factor"],
-            "reasoning": "DETAILED SYNTHESIS: Write 3 paragraphs. 1) Current Regime (e.g., High-Rate/Low-Vol). 2) Impact on this asset class. 3) Forward outlook. CITE ALL VALUES."
+            "reasoning": "DETAILED SYNTHESIS: Write 3 paragraphs. 1) Current Regime for {region} markets. 2) Impact on this asset class. 3) Forward outlook. CITE ALL VALUES."
         }}
 
         RULES:
         1. QUANTIFY EVERYTHING. Don't say "High VIX", say "VIX at 28.5 indicates extreme fear".
-        2. CONNECT THE DOTS. How do high rates affect THIS asset's valuation?
+        2. CONNECT THE DOTS. How do rates/policy affect THIS asset's valuation?
         3. NO VAGUE STATEMENTS. "Market is good" is forbidden.
+        4. REGION FOCUS: Prioritize {region} indicators for this {region} stock.
 
         CONTEXT (Retrieved from RAG):
         {context_str if context_str else "No macro data available in context."}
@@ -66,7 +96,7 @@ class MacroAgent(BaseAgent):
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a Macro Strategist. Output valid JSON. Be precise about indicators.",
+            system_prompt=f"You are a Macro Strategist specializing in {region} markets. Output valid JSON. Be precise about indicators.",
             fallback_func=self._rule_based_macro,
             fallback_args=macro_data
         )

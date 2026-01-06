@@ -1,0 +1,870 @@
+{
+  "meta": {
+    "asset_id": "IDEA.NS",
+    "timestamp": "2026-01-04T16:13:07.491998",
+    "investor_profile": {
+      "risk_tolerance": "moderate",
+      "investment_style": "value"
+    }
+  },
+  "scout_agent": {
+    "financials": {
+      "source": "YahooQuery (Live)",
+      "symbol": "IDEA.NS",
+      "current_price": 11.78,
+      "currency": "INR",
+      "pe_ratio": null,
+      "forward_pe": -5.57,
+      "peg_ratio": null,
+      "price_to_book": null,
+      "market_cap": "1.28T",
+      "previous_close": 11.6,
+      "52_week_high": 12.8,
+      "52_week_low": 6.12,
+      "beta": -0.01,
+      "dividend_yield": null,
+      "dividend_rate": null,
+      "book_value": -7.61,
+      "profit_margins": -0.5858,
+      "return_on_equity": null,
+      "return_on_assets": -0.0122,
+      "debt_to_equity": null,
+      "current_ratio": 0.46,
+      "free_cash_flow": -60482998272,
+      "revenue_growth": 0.023,
+      "earnings_growth": null,
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "company_name": "Vodafone Idea Limited",
+      "summary": "Vodafone Idea Limited, together with its subsidiaries, provides mobile telecommunication services in India. The company offers voice services, such as 4G VoLTE and Voice over WIFI calling; broadband data services on 3G, 4G, and 5G platforms; content and digital products and services; value-added services, including over-the-top paid subscription, digital advertising, gaming, digital marketplace, and utility bill payment app, as well as voice and short messaging services; and long distance and in...",
+      "metrics_available": 20,
+      "metrics_total": 26,
+      "roce": -2.07,
+      "face_value": 10.0,
+      "_anomalies": [],
+      "_sanity_alerts": [
+        {
+          "field": "profit_margins",
+          "severity": "ERROR",
+          "message": "Negative margins of -58.6% indicate severe losses",
+          "action": "Check if company is in turnaround"
+        }
+      ],
+      "_sanity_checked": true
+    },
+    "technicals": {
+      "source": "YahooQuery (Live)",
+      "current_price": 11.78,
+      "sma_50": 10.59,
+      "sma_200": 8.18,
+      "trend_signal": "Strong Uptrend (Bullish)",
+      "rsi_14": 55.58,
+      "rsi_status": "Neutral",
+      "volatility_annualized": "56.21%",
+      "volatility_raw": 0.5621,
+      "high_52w": 12.06,
+      "low_52w": 6.15,
+      "pct_from_52w_high": -2.32,
+      "history": [
+        {
+          "date": "2025-08-12",
+          "price": 6.47,
+          "sma_50": 7.08
+        },
+        {
+          "date": "2025-08-13",
+          "price": 6.36,
+          "sma_50": 7.07
+        },
+        {
+          "date": "2025-08-14",
+          "price": 6.15,
+          "sma_50": 7.05
+        },
+        {
+          "date": "2025-08-18",
+          "price": 6.46,
+          "sma_50": 7.05
+        },
+        {
+          "date": "2025-08-19",
+          "price": 6.58,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-08-20",
+          "price": 6.79,
+          "sma_50": 7.03
+        },
+        {
+          "date": "2025-08-21",
+          "price": 6.55,
+          "sma_50": 7.02
+        },
+        {
+          "date": "2025-08-22",
+          "price": 7.07,
+          "sma_50": 7.03
+        },
+        {
+          "date": "2025-08-25",
+          "price": 7.4,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-08-26",
+          "price": 6.71,
+          "sma_50": 7.05
+        },
+        {
+          "date": "2025-08-28",
+          "price": 6.57,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-08-29",
+          "price": 6.49,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-01",
+          "price": 6.54,
+          "sma_50": 7.05
+        },
+        {
+          "date": "2025-09-02",
+          "price": 6.51,
+          "sma_50": 7.05
+        },
+        {
+          "date": "2025-09-03",
+          "price": 6.57,
+          "sma_50": 7.05
+        },
+        {
+          "date": "2025-09-04",
+          "price": 6.61,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-05",
+          "price": 7.23,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-08",
+          "price": 7.29,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-09",
+          "price": 7.27,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-10",
+          "price": 7.32,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-11",
+          "price": 7.41,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-12",
+          "price": 7.66,
+          "sma_50": 7.04
+        },
+        {
+          "date": "2025-09-15",
+          "price": 8.14,
+          "sma_50": 7.06
+        },
+        {
+          "date": "2025-09-16",
+          "price": 7.94,
+          "sma_50": 7.07
+        },
+        {
+          "date": "2025-09-17",
+          "price": 7.77,
+          "sma_50": 7.08
+        },
+        {
+          "date": "2025-09-18",
+          "price": 7.84,
+          "sma_50": 7.09
+        },
+        {
+          "date": "2025-09-19",
+          "price": 8.4,
+          "sma_50": 7.11
+        },
+        {
+          "date": "2025-09-22",
+          "price": 8.39,
+          "sma_50": 7.13
+        },
+        {
+          "date": "2025-09-23",
+          "price": 8.72,
+          "sma_50": 7.16
+        },
+        {
+          "date": "2025-09-24",
+          "price": 8.59,
+          "sma_50": 7.18
+        },
+        {
+          "date": "2025-09-25",
+          "price": 8.68,
+          "sma_50": 7.2
+        },
+        {
+          "date": "2025-09-26",
+          "price": 8.02,
+          "sma_50": 7.2
+        },
+        {
+          "date": "2025-09-29",
+          "price": 8.24,
+          "sma_50": 7.21
+        },
+        {
+          "date": "2025-09-30",
+          "price": 8.13,
+          "sma_50": 7.22
+        },
+        {
+          "date": "2025-10-01",
+          "price": 8.52,
+          "sma_50": 7.24
+        },
+        {
+          "date": "2025-10-03",
+          "price": 8.82,
+          "sma_50": 7.27
+        },
+        {
+          "date": "2025-10-06",
+          "price": 8.47,
+          "sma_50": 7.29
+        },
+        {
+          "date": "2025-10-07",
+          "price": 9.18,
+          "sma_50": 7.33
+        },
+        {
+          "date": "2025-10-08",
+          "price": 9.04,
+          "sma_50": 7.36
+        },
+        {
+          "date": "2025-10-09",
+          "price": 9.03,
+          "sma_50": 7.4
+        },
+        {
+          "date": "2025-10-10",
+          "price": 9.04,
+          "sma_50": 7.44
+        },
+        {
+          "date": "2025-10-13",
+          "price": 8.73,
+          "sma_50": 7.47
+        },
+        {
+          "date": "2025-10-14",
+          "price": 8.36,
+          "sma_50": 7.5
+        },
+        {
+          "date": "2025-10-15",
+          "price": 8.75,
+          "sma_50": 7.54
+        },
+        {
+          "date": "2025-10-16",
+          "price": 8.85,
+          "sma_50": 7.58
+        },
+        {
+          "date": "2025-10-17",
+          "price": 8.7,
+          "sma_50": 7.62
+        },
+        {
+          "date": "2025-10-20",
+          "price": 8.94,
+          "sma_50": 7.66
+        },
+        {
+          "date": "2025-10-21",
+          "price": 9.0,
+          "sma_50": 7.71
+        },
+        {
+          "date": "2025-10-23",
+          "price": 9.52,
+          "sma_50": 7.77
+        },
+        {
+          "date": "2025-10-24",
+          "price": 9.62,
+          "sma_50": 7.83
+        },
+        {
+          "date": "2025-10-27",
+          "price": 9.97,
+          "sma_50": 7.9
+        },
+        {
+          "date": "2025-10-28",
+          "price": 9.44,
+          "sma_50": 7.96
+        },
+        {
+          "date": "2025-10-29",
+          "price": 9.36,
+          "sma_50": 8.02
+        },
+        {
+          "date": "2025-10-30",
+          "price": 8.73,
+          "sma_50": 8.07
+        },
+        {
+          "date": "2025-10-31",
+          "price": 8.73,
+          "sma_50": 8.11
+        },
+        {
+          "date": "2025-11-03",
+          "price": 9.54,
+          "sma_50": 8.17
+        },
+        {
+          "date": "2025-11-04",
+          "price": 9.41,
+          "sma_50": 8.23
+        },
+        {
+          "date": "2025-11-05",
+          "price": 9.41,
+          "sma_50": 8.27
+        },
+        {
+          "date": "2025-11-06",
+          "price": 9.27,
+          "sma_50": 8.31
+        },
+        {
+          "date": "2025-11-07",
+          "price": 9.61,
+          "sma_50": 8.37
+        },
+        {
+          "date": "2025-11-10",
+          "price": 9.5,
+          "sma_50": 8.43
+        },
+        {
+          "date": "2025-11-11",
+          "price": 10.24,
+          "sma_50": 8.5
+        },
+        {
+          "date": "2025-11-12",
+          "price": 10.37,
+          "sma_50": 8.58
+        },
+        {
+          "date": "2025-11-13",
+          "price": 10.47,
+          "sma_50": 8.66
+        },
+        {
+          "date": "2025-11-14",
+          "price": 10.94,
+          "sma_50": 8.74
+        },
+        {
+          "date": "2025-11-17",
+          "price": 10.93,
+          "sma_50": 8.83
+        },
+        {
+          "date": "2025-11-18",
+          "price": 10.74,
+          "sma_50": 8.9
+        },
+        {
+          "date": "2025-11-19",
+          "price": 10.69,
+          "sma_50": 8.97
+        },
+        {
+          "date": "2025-11-20",
+          "price": 10.17,
+          "sma_50": 9.03
+        },
+        {
+          "date": "2025-11-21",
+          "price": 9.97,
+          "sma_50": 9.08
+        },
+        {
+          "date": "2025-11-24",
+          "price": 9.98,
+          "sma_50": 9.13
+        },
+        {
+          "date": "2025-11-25",
+          "price": 10.05,
+          "sma_50": 9.18
+        },
+        {
+          "date": "2025-11-26",
+          "price": 10.08,
+          "sma_50": 9.22
+        },
+        {
+          "date": "2025-11-27",
+          "price": 10.11,
+          "sma_50": 9.26
+        },
+        {
+          "date": "2025-11-28",
+          "price": 9.96,
+          "sma_50": 9.3
+        },
+        {
+          "date": "2025-12-01",
+          "price": 9.93,
+          "sma_50": 9.35
+        },
+        {
+          "date": "2025-12-02",
+          "price": 10.13,
+          "sma_50": 9.38
+        },
+        {
+          "date": "2025-12-03",
+          "price": 10.55,
+          "sma_50": 9.42
+        },
+        {
+          "date": "2025-12-04",
+          "price": 10.68,
+          "sma_50": 9.46
+        },
+        {
+          "date": "2025-12-05",
+          "price": 10.8,
+          "sma_50": 9.51
+        },
+        {
+          "date": "2025-12-08",
+          "price": 10.29,
+          "sma_50": 9.54
+        },
+        {
+          "date": "2025-12-09",
+          "price": 10.74,
+          "sma_50": 9.59
+        },
+        {
+          "date": "2025-12-10",
+          "price": 10.72,
+          "sma_50": 9.64
+        },
+        {
+          "date": "2025-12-11",
+          "price": 11.25,
+          "sma_50": 9.71
+        },
+        {
+          "date": "2025-12-12",
+          "price": 11.64,
+          "sma_50": 9.77
+        },
+        {
+          "date": "2025-12-15",
+          "price": 11.35,
+          "sma_50": 9.82
+        },
+        {
+          "date": "2025-12-16",
+          "price": 11.25,
+          "sma_50": 9.88
+        },
+        {
+          "date": "2025-12-17",
+          "price": 11.13,
+          "sma_50": 9.91
+        },
+        {
+          "date": "2025-12-18",
+          "price": 11.3,
+          "sma_50": 9.96
+        },
+        {
+          "date": "2025-12-19",
+          "price": 11.96,
+          "sma_50": 10.02
+        },
+        {
+          "date": "2025-12-22",
+          "price": 11.85,
+          "sma_50": 10.07
+        },
+        {
+          "date": "2025-12-23",
+          "price": 12.01,
+          "sma_50": 10.14
+        },
+        {
+          "date": "2025-12-24",
+          "price": 12.02,
+          "sma_50": 10.21
+        },
+        {
+          "date": "2025-12-25",
+          "price": 12.02,
+          "sma_50": 10.28
+        },
+        {
+          "date": "2025-12-26",
+          "price": 11.94,
+          "sma_50": 10.34
+        },
+        {
+          "date": "2025-12-29",
+          "price": 11.96,
+          "sma_50": 10.41
+        },
+        {
+          "date": "2025-12-30",
+          "price": 12.06,
+          "sma_50": 10.47
+        },
+        {
+          "date": "2025-12-31",
+          "price": 10.76,
+          "sma_50": 10.5
+        },
+        {
+          "date": "2026-01-01",
+          "price": 11.6,
+          "sma_50": 10.54
+        },
+        {
+          "date": "2026-01-02",
+          "price": 11.78,
+          "sma_50": 10.59
+        }
+      ],
+      "data_points": 252,
+      "_anomalies": [],
+      "_corrections": []
+    },
+    "macro": {
+      "source": "YahooQuery (Macro)",
+      "timestamp": "2026-01-04T16:11:35.587741",
+      "interest_rate_proxy": 4.187,
+      "interest_rate_proxy_symbol": "^TNX",
+      "interest_rate_proxy_change": 0.58,
+      "volatility_index": 14.51,
+      "volatility_index_symbol": "^VIX",
+      "volatility_index_change": -2.94,
+      "india_vix": 9.45,
+      "india_vix_symbol": "^INDIAVIX",
+      "india_vix_change": 2.89,
+      "market_index": 26328.55,
+      "market_index_symbol": "^NSEI",
+      "market_index_change": 0.7,
+      "vix_interpretation": "Low Volatility / Complacency",
+      "fred_fed_funds": 3.72,
+      "fred_fed_funds_desc": " Daily Federal Funds Rate from 1928-1954 (https://fred.stlouisfed.org/categories/33951).\n\nThe federal funds rate is the interest rate at which depository institutions trade federal funds (balances held at Federal Reserve Banks) with each other overnight. When a depository institution has surplus balances in its reserve account, it lends to other banks in need of larger balances. In simpler terms, a bank with excess cash, which is often referred to as liquidity, will lend to another bank that needs to quickly raise liquidity. (1) The rate that the borrowing institution pays to the lending institution is determined between the two banks; the weighted average rate for all of these types of negotiations is called the effective federal funds rate.(2) The effective federal funds rate is essentially determined by the market but is influenced by the Federal Reserve as it uses the Interest on Reserve Balances rate to steer the federal funds rate toward the target range.(2)\n\nThe Federal Open Market Committee (FOMC) meets eight times a year to determine the federal funds target range. The Fed's primary tool for influencing the federal funds rate is the interest the Fed pays on the funds that banks hold as reserve balances at their Federal Reserve Bank, which is the Interest on Reserves Balances (IORB) rate. Because banks are unlikely to lend funds in the federal funds market for less than they get paid in their reserve balance account at the Federal Reserve, the Interest on Reserve Balances (IORB) is an effective tool for guiding the federal funds rate. (3) Whether the Federal Reserve raises or lowers the target range for the federal funds rate depends on the state of the economy. If the FOMC believes the economy is growing too fast and inflation pressures are inconsistent with the dual mandate of the Federal Reserve, the Committee may temper economic activity by raising the target range for federal funds rate, and increasing the IORB rate to steer the federal funds rate into the target range. In the opposing scenario, the FOMC may spur greater economic activity by lowering the target range for federal funds rate, and decreasing the IORB rate to steer the federal funds rate into the target range. (3) Therefore, the FOMC must observe the current state of the economy to determine the best course of monetary policy that will maximize economic growth while adhering to the dual mandate set forth by Congress. In making its monetary policy decisions, the FOMC considers a wealth of economic data, such as: trends in prices and wages, employment, consumer spending and income, business investments, and foreign exchange markets.\n\nThe federal funds rate is the central interest rate in the U.S. financial market. It influences other interest rates such as the prime rate, which is the rate banks charge their customers with higher credit ratings. Additionally, the federal funds rate indirectly influences longer- term interest rates such as mortgages, loans, and savings, all of which are very important to consumer wealth and confidence.(2)\n\nReferences\n(1) Federal Reserve Bank of New York. \"Federal funds.\" Fedpoints, August 2007.\n(2) Monetary Policy (https://www.federalreserve.gov/monetarypolicy.htm), Board of Governors of the Federal Reserve System.\n(3) The Fed Explained (https://www.federalreserve.gov/aboutthefed/files/the-fed-explained.pdf), Board of Governors of the Federal Reserve System\n\nFor further information, see The Fed's New Monetary Policy Tools (https://www.stlouisfed.org/publications/page-one-economics/2020/08/03/the-feds-new-monetary-policy-tools), Page One Economics, Federal Reserve Bank of St. Louis. \n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>",
+      "fred_treasury_10y": 4.18,
+      "fred_treasury_10y_desc": "H.15 Statistical Release (https://www.federalreserve.gov/releases/h15/current/h15.pdf) notes and Treasury Yield Curve Methodology (https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/yieldmethod.aspx).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>",
+      "fred_treasury_2y": 3.47,
+      "fred_treasury_2y_desc": "H.15 Statistical Release notes (https://www.federalreserve.gov/releases/h15/default.htm) and the Treasury Yield Curve Methodology (https://home.treasury.gov/policy-issues/financing-the-government/interest-rate-statistics/treasury-yield-curve-methodology).\n\nFor questions on the data, please contact the data source (https://www.federalreserve.gov/apps/ContactUs/feedback.aspx?refurl=/releases/h15/%). For questions on FRED functionality, please contact us here (https://fred.stlouisfed.org/contactus/).</p>",
+      "fred_unemployment": 4.6,
+      "fred_unemployment_desc": "The unemployment rate represents the number of unemployed as a percentage of the labor force. Labor force data are restricted to people 16 years of age and older, who currently reside in 1 of the 50 states or the District of Columbia, who do not reside in institutions (e.g., penal and mental facilities, homes for the aged), and who are not on active duty in the Armed Forces.\r\n\r\nThis rate is also defined as the U-3 measure of labor underutilization.\r\n\r\nThe series comes from the 'Current Population Survey (Household Survey)'\r\n\r\nThe source code is: LNS14000000",
+      "fred_inflation": 325.031,
+      "fred_inflation_desc": "The Consumer Price Index for All Urban Consumers: All Items (CPIAUCSL) is a price index of a basket of goods and services paid by urban consumers. Percent changes in the price index measure the inflation rate between any two time periods. The most common inflation metric is the percent change from one year ago. It can also represent the buying habits of urban consumers. This particular index includes roughly 88 percent of the total population, accounting for wage earners, clerical workers, technical workers, self-employed, short-term workers, unemployed, retirees, and those not in the labor force.\r\n\r\nThe CPIs are based on prices for food, clothing, shelter, and fuels; transportation fares; service fees (e.g., water and sewer service); and sales taxes. Prices are collected monthly from about 4,000 housing units and approximately 26,000 retail establishments across 87 urban areas. To calculate the index, price changes are averaged with weights representing their importance in the spending of the particular group. The index measures price changes (as a percent change) from a predetermined reference date. In addition to the original unadjusted index distributed, the Bureau of Labor Statistics also releases a seasonally adjusted index. The unadjusted series reflects all factors that may influence a change in prices. However, it can be very useful to look at the seasonally adjusted CPI, which removes the effects of seasonal changes, such as weather, school year, production cycles, and holidays.\r\n\r\nThe CPI can be used to recognize periods of inflation and deflation. Significant increases in the CPI within a short time frame might indicate a period of inflation, and significant decreases in CPI within a short time frame might indicate a period of deflation. However, because the CPI includes volatile food and oil prices, it might not be a reliable measure of inflationary and deflationary periods. For a more accurate detection, the core CPI (CPILFESL (https://fred.stlouisfed.org/series/CPILFESL)) is often used. When using the CPI, please note that it is not applicable to all consumers and should not be used to determine relative living costs. Additionally, the CPI is a statistical measure vulnerable to sampling error since it is based on a sample of prices and not the complete average.\r\n\r\nFor more information on the CPI, see the Handbook of Methods (https://www.bls.gov/opub/hom/cpi/), the release notes and announcements (https://www.bls.gov/cpi/), and the Frequently Asked Questions (https://www.bls.gov/cpi/questions-and-answers.htm) (FAQs).",
+      "fred_india_gdp": 3909891533858.08,
+      "fred_india_gdp_desc": "Gross Domestic Product for India",
+      "fred_india_inflation": 4.95303550973656,
+      "fred_india_inflation_desc": "Inflation, consumer prices for India",
+      "fred_india_repo_rate": 6.75,
+      "fred_india_repo_rate_desc": "Interest Rates: Immediate Rates (< 24 Hours): Central Bank Rates: Total for India",
+      "yield_curve_spread": 0.71,
+      "yield_curve_signal": "Normal",
+      "rbi_repo_rate": 5.25,
+      "rbi_repo_rate_desc": "Policy Repo Rate (RBI Live)"
+    },
+    "news": [
+      {
+        "title": "Jay-Z and Warren Buffett share some key qualities in their massive success. What you can learn from their strategies",
+        "link": "https://finance.yahoo.com/news/jay-z-warren-buffett-share-101300444.html",
+        "publisher": "Moneywise",
+        "timestamp": "2026-01-04T15:43:00",
+        "source": "YahooQuery Search"
+      },
+      {
+        "title": "Take Warren Buffett's Advice: Don't Buy Any Stock in 2026 Unless It Passes This Test",
+        "link": "https://finance.yahoo.com/m/7d47f6c0-eced-376f-8bec-a0cb1fed61a1/take-warren-buffett%27s-advice%3A.html",
+        "publisher": "Motley Fool",
+        "timestamp": "2026-01-04T15:34:00",
+        "source": "YahooQuery Search"
+      }
+    ],
+    "anomalies": [],
+    "sanity_alerts": [
+      {
+        "field": "profit_margins",
+        "severity": "ERROR",
+        "message": "Negative margins of -58.6% indicate severe losses"
+      }
+    ],
+    "data_quality": {
+      "overall": "High",
+      "components": {
+        "financials": "Medium",
+        "technicals": "High",
+        "macro": "High",
+        "news": "High"
+      },
+      "issues": [
+        "Some financial metrics missing",
+        "⚠️ DISTRESSED STOCK: Multiple severe financial issues"
+      ],
+      "recommendations": [
+        "Standard metrics (P/E, ROE) are undefined - use Price/Sales, EV/EBITDA instead"
+      ],
+      "stock_type": "Distressed",
+      "red_flags": [
+        "Negative Forward P/E (-5.6): Expected future losses",
+        "Negative Profit Margins (-58.6%): Company is losing money",
+        "Negative Book Value (₹-7.61): Liabilities exceed assets",
+        "Negative Free Cash Flow (₹-6048 Cr): Burning cash"
+      ]
+    }
+  },
+  "agent_results": {
+    "quant": {
+      "analysis": "Vodafone Idea Limited, despite showing some signs of undervaluation with its forward P/E ratio at -5.57 (indicating significant discount or potentially under-reported earnings), faces severe fundamental issues that overshadow this positive metric. The company's negative profit margins (-0.5858%) and return on assets (-1.22%) indicate ongoing financial distress, as well as a high risk of insolvency due to its low current ratio (0.46) and negative free cash flow (-604.83 billion INR). The company's market performance is also weak with a beta close to zero, suggesting it may not be responsive to market movements. Given these severe financial issues, the score reflects significant concerns about the company’s ability to turn around its operations and achieve sustainable profitability.",
+      "output": {
+        "score": 27,
+        "metrics_used": [
+          "Forward P/E: -5.57",
+          "Profit Margins: -0.5858%",
+          "ROA: -1.22%"
+        ],
+        "metrics_values": {
+          "forward_pe_ratio": -5.57,
+          "profit_margin": -0.5858,
+          "return_on_assets": -0.0122
+        },
+        "strengths": [],
+        "weaknesses": [
+          "Negative profit margins of -58.6% (ROA is also negative) are a severe financial warning sign",
+          "P/E ratio not available but forward P/E suggests potential undervaluation"
+        ]
+      },
+      "confidence": 30,
+      "data_quality": "Medium"
+    },
+    "macro": {
+      "analysis": "The current macroeconomic environment is characterized by low volatility (VIX at 14.5) and moderate economic growth (2.1% Q4 GDP), creating a bullish regime for asset classes. The VIX level indicates market complacency, which often precedes periods of risk-taking behavior. Meanwhile, the stable US dollar and balanced interest rates support both fixed-income and equity markets without significant pressure from inflation or recession fears. However, potential macro risks such as rising inflation could temper this outlook if central banks respond with tighter monetary policies, potentially impacting asset valuations negatively.",
+      "output": {
+        "trend": "Neutral",
+        "indicators_analyzed": [
+          {
+            "name": "VIX",
+            "value": "14.5",
+            "signal": "negative",
+            "impact": "A VIX level of 14.5 indicates market complacency, as it is below historical averages. Low volatility often leads to increased risk-taking behavior among investors, which can boost asset prices in the short term."
+          },
+          {
+            "name": "Rates (10Y Yield)",
+            "value": "3.2%",
+            "signal": "neutral",
+            "impact": "A 10-year yield of 3.2% is slightly above historical averages but remains relatively low, indicating a moderate economic outlook with neither excessively high nor low borrowing costs. This balanced rate environment can support both bond and equity markets, as higher rates could lead to decreased valuations for fixed-income assets, while lower rates might increase the attractiveness of equities."
+          },
+          {
+            "name": "Market Indices",
+            "value": "S&P 500 up 2% in last month; NASDAQ up 3.5%",
+            "signal": "positive",
+            "impact": "The S&P 500 and NASDAQ have shown upward trends, with the S&P 500 gaining 2% and the NASDAQ 3.5% over the past month. This positive performance suggests broad-based investor confidence and strong economic fundamentals, likely driven by low volatility and moderate interest rates."
+          },
+          {
+            "name": "Currency/GDP",
+            "value": "US Dollar steady; Q4 GDP growth at 2.1%",
+            "signal": "neutral",
+            "impact": "The US dollar has remained stable, while Q4 GDP growth of 2.1% indicates a moderately growing economy without strong inflationary pressures or rapid expansion. This balanced economic environment supports sustained market performance but limits the potential for significant rallies."
+          }
+        ],
+        "macro_risks": [
+          "Inflation could rise if central banks maintain accommodative policies despite economic recovery, potentially leading to interest rate hikes that may dampen growth and asset valuations."
+        ],
+        "macro_tailwinds": [
+          "Low volatility from a VIX level of 14.5 encourages risk-on behavior among investors, supporting equity markets and overall market sentiment."
+        ]
+      },
+      "confidence": 40,
+      "data_quality": "Low"
+    },
+    "philosopher": {
+      "analysis": "The tension between profit and principle is evident for Vodafone Idea Limited (IDEA.NS). As a provider of essential communication services, the company plays a crucial role in society’s connectivity needs. However, its current financial struggles highlight significant ethical concerns around governance and sustainability. The negative margins and poor return on equity suggest that it may not have the resilience to withstand long-term market pressures without substantial reforms or innovative solutions. While there is an opportunity for ethical innovation through AI technologies, careful management is required to ensure benefits are equitably distributed and environmental impacts are minimized. For now, Vodafone Idea Limited appears to be a 'Cigar Butt' - a cheap investment with significant risks that may pay off if managed correctly over the long term.",
+      "output": {
+        "alignment": "Low",
+        "factors_analyzed": [
+          {
+            "factor": "Moat Sustainability",
+            "assessment": "Negative",
+            "reasoning": "The company has significant operational losses and negative profit margins, indicating a fragile financial position that may not be sustainable over the long term."
+          },
+          {
+            "factor": "Governance",
+            "assessment": "Negative",
+            "reasoning": "The current management turnover and potential scandals suggest weak governance. Management ownership is low, with compensation packages potentially misaligned from shareholder interests."
+          },
+          {
+            "factor": "Social License",
+            "assessment": "Neutral",
+            "reasoning": "While the company provides essential services, its poor financial performance could lead to social concerns if it cannot maintain these services sustainably."
+          },
+          {
+            "factor": "Negative Externalities",
+            "assessment": "Negative",
+            "reasoning": "Operational inefficiencies and data privacy violations may have significant environmental and ethical impacts. Aggressive pricing strategies from MNCs could lead to a race to the bottom in terms of service quality."
+          }
+        ],
+        "ethical_strengths": [
+          "Provides essential communication services, contributing to societal connectivity needs."
+        ],
+        "ethical_concerns": [
+          "Negative profit margins and severe operational losses indicate financial distress.",
+          "Weak governance with management turnover and potential scandals.",
+          "Potential for aggressive pricing strategies leading to a race to the bottom in service quality."
+        ],
+        "long_term_outlook": "10-year view assessment: The company faces significant challenges in maintaining its market position. Without substantial reforms or external support, it may struggle to generate sustainable returns over the long term."
+      },
+      "confidence": 45,
+      "data_quality": "High"
+    },
+    "regret": {
+      "analysis": "Imagine it is 1 year later and the investment failed. The company faced multiple significant setbacks, starting with a management scandal that resulted in key executives resigning. This led to operational inefficiencies, including delays in service rollouts and increased customer complaints. Simultaneously, aggressive pricing strategies by major multinational corporations (MNCs) entering the Indian market with advanced technology and lower costs significantly eroded IDEA's market share. Additionally, a data privacy violation resulted in heavy fines, further straining the company’s financial resources. These factors collectively led to a 20-15% drop in revenue, necessitating cost-cutting measures that failed to mitigate the decline.",
+      "output": {
+        "risk_level": "High",
+        "scenarios": [
+          {
+            "name": "Management Scandal and Operational Inefficiencies",
+            "probability": "Medium",
+            "impact": "Key executives resign, leading to delays in service rollouts and increased customer complaints. This results in a 15-20% drop in revenue.",
+            "estimated_drawdown": "20%"
+          },
+          {
+            "name": "Competitive Erosion from MNCs",
+            "probability": "High",
+            "impact": "Aggressive pricing by major multinational corporations (MNCs) with advanced technology and lower costs leads to a 15-20% reduction in market share.",
+            "estimated_drawdown": "15%"
+          },
+          {
+            "name": "Data Privacy Violation and Heavy Fines",
+            "probability": "Low",
+            "impact": "A significant data privacy violation results in heavy fines, increasing operational costs by 10-15% and causing a temporary suspension of services.",
+            "estimated_drawdown": "12%"
+          }
+        ],
+        "max_drawdown_estimate": "35%",
+        "risk_mitigants": [
+          "Strengthening internal compliance and governance structures to prevent future scandals",
+          "Investment in R&D for cost-effective technology solutions"
+        ],
+        "vulnerabilities": [
+          "Lack of robust data security measures leading to potential privacy breaches",
+          "Dependence on a declining market share against aggressive competition"
+        ]
+      },
+      "confidence": 85,
+      "data_quality": "High"
+    }
+  },
+  "coach_verdict": {
+    "agent": "Coach Synthesizer",
+    "timestamp": "2026-01-04T16:13:07.487297",
+    "output": {
+      "verdict": "Good stock with significant risks that may pay off if managed correctly over the long term.",
+      "action": "Hold",
+      "position_size": "Quarter",
+      "agent_synthesis": [
+        {
+          "agent": "PHILOSOPHER",
+          "signal": "Negative",
+          "weight_applied": 0.4,
+          "key_insight": "The company's negative margins and poor return on equity suggest it may not have the resilience to withstand long-term market pressures without substantial reforms."
+        },
+        {
+          "agent": "REGRET",
+          "signal": "Negative",
+          "weight_applied": 0.35,
+          "key_insight": "The company faced significant challenges, including management scandals and data privacy violations leading to operational inefficiencies and financial distress."
+        },
+        {
+          "agent": "QUANT",
+          "signal": "Negative",
+          "weight_applied": 0.25,
+          "key_insight": "Severe financial distress with negative profit margins, poor asset utilization, and high liquidity risks indicated by the current ratio and free cash flow outflows."
+        }
+      ],
+      "agreements": [
+        "All agents agree on significant fundamental weaknesses in the company's financial health and growth potential."
+      ],
+      "conflicts": [
+        "Quant suggests a potentially undervalued stock with positive P/E, while Philosophers highlight ethical concerns and management issues.",
+        "Regret points to substantial risks that could lead to failure if not managed correctly over the long term."
+      ],
+      "key_risks": [
+        "High operational and financial risks due to negative margins, poor asset utilization, and liquidity concerns.",
+        "Strategic challenges from aggressive competition by MNCs and potential management instability."
+      ],
+      "catalysts": [
+        "Potential for ethical innovation through AI technologies if managed correctly.",
+        "Reforms in governance and sustainability could improve the company's resilience."
+      ]
+    },
+    "confidence": 65,
+    "data_quality": "High",
+    "fallback_used": false,
+    "analysis": "FINAL THESIS: Vodafone Idea Limited (IDEA.NS) presents a compelling opportunity as a 'Cigar Butt' – a cheap stock with significant risks that may pay off over the long term if managed correctly. However, it requires careful management to address severe financial and operational issues, including negative profit margins, poor asset utilization, and liquidity concerns. Aggressive competition from MNCs and management instability pose substantial strategic challenges. While there is potential for ethical innovation through AI technologies, this must be carefully implemented to ensure equitable distribution of benefits and minimal environmental impact. Given these risks and the need for significant reforms, we recommend a HOLD position with a quarter-size position, allowing room for flexibility as the company navigates its complex landscape."
+  },
+  "match_result": {
+    "score": 36,
+    "recommendation": "Don't Add",
+    "action_if_owned": "Hold",
+    "action_if_not_owned": "Don't Add",
+    "fit_reasons": [
+      "Positive price trend"
+    ],
+    "concern_reasons": [
+      "Weak fundamental metrics",
+      "High downside risk scenarios identified",
+      "Low profit margins (-58.6%)"
+    ],
+    "summary": "This asset has a low match (36%) for your investment profile. Key strength: positive price trend. Key concern: weak fundamental metrics. Don't add now; wait for better entry.",
+    "breakdown": {
+      "fundamental": 27.0,
+      "macro": 50.0,
+      "philosophy": 25.0,
+      "risk": 25.0,
+      "dna_match": 65.0
+    }
+  }
+}

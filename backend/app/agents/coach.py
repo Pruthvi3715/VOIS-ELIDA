@@ -60,7 +60,24 @@ class CoachAgent(BaseAgent):
             "conflicts": ["Specific conflict and how you resolved it"],
             "key_risks": ["Top 2 critical risks"],
             "catalysts": ["Top 2 positive triggers"],
-            "reasoning": "FINAL THESIS: Write a comprehensive executive summary (3-4 paragraphs). 1) The Investment Case (Why buy?). 2) The Risks (Why not?). 3) The Strategy (How to size/enter). Cite specific agents and their data."
+            "reasoning": '''
+            STRICT SYNTHESIS (FinCoT):
+
+            STEP 1: THESIS FORMULATION
+            - Core Argument: "Buy because [Catalyst] > [Risk]" or "Sell because [Risk] > [Growth]".
+            - Weighing: Quant (30%) says X, Regret (20%) says Y. Who is right?
+
+            STEP 2: CONFLICT RESOLUTION
+            - If Quant says "Cheap" but Macro says "Recession", decide based on Quality.
+            - Explicitly state: "I am overruling Macro because..."
+
+            STEP 3: EXECUTION STRATEGY
+            - Position Size: Why Half? Why Full?
+            - Entry Point: "Wait for X" or "Buy at Market"?
+
+            STEP 4: FINAL VERDICT
+            - One powerful sentence summarizing the trade.
+            '''
         }}
 
         RULES:
@@ -102,6 +119,46 @@ class CoachAgent(BaseAgent):
             fallback_used=fallback_used,
             analysis=parsed.get("reasoning", response)
         )
+
+    def compare_analysis(self, stock1: str, data1: Dict[str, Any], stock2: str, data2: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Compare two stocks based on their agent analyses.
+        """
+        prompt = f"""
+        You are the Investment Coach. Compare two stocks side-by-side based on their AI analysis data.
+
+        STOCK A: {stock1}
+        Analysis: {str(data1)[:3000]}
+
+        STOCK B: {stock2}
+        Analysis: {str(data2)[:3000]}
+
+        TASK:
+        Provide a Head-to-Head comparison. For EACH agent dimension (Quant, Macro, Philosopher, Regret), pick a winner and explain why.
+
+        OUTPUT FORMAT (STRICT JSON):
+        {{
+            "overall_winner": "{stock1} or {stock2} or Tie",
+            "overall_reasoning": "concise verdict summary...",
+            "dimensions": {{
+                "Quant": {{ "winner": "{stock1}", "reason": "Lower P/E (15 vs 25) and higher efficiency" }},
+                "Macro": {{ "winner": "{stock2}", "reason": "Better defensive qualities in recession" }},
+                "Philosopher": {{ "winner": "Tie", "reason": "Both have strong governance" }},
+                "Regret": {{ "winner": "{stock1}", "reason": "Lower downside risk" }}
+            }}
+        }}
+        """
+        
+        response = self.call_llm(
+            prompt=prompt,
+            system_prompt="You are a Comparative Financial Analyst. Be decisive and specific.",
+        )
+        
+        return self.parse_json_from_response(response) or {
+            "overall_winner": "Tie",
+            "overall_reasoning": "Could not generate comparison.",
+            "dimensions": {}
+        }
 
     def _parse_response(self, response: str) -> Dict[str, Any]:
         """

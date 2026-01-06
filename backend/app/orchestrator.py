@@ -29,6 +29,11 @@ class FinancialOrchestrator:
         """
         print(f"Orchestrator: Starting ingestion for {asset_id}")
         try:
+            # 0. Clear old cache for this asset (ensure fresh analysis)
+            deleted_count = rag_service.delete_by_asset(asset_id)
+            if deleted_count > 0:
+                print(f"Orchestrator: Cleared {deleted_count} cached documents for {asset_id}")
+            
             # 1. Scout collects data
             raw_data = scout_agent.collect_data(asset_id)
             
@@ -101,7 +106,7 @@ class FinancialOrchestrator:
             
             # Convert to list of dicts with context trimming
             global_context = []
-            MAX_CONTENT_CHARS = 2000  # Limit each context chunk
+            MAX_CONTENT_CHARS = 500  # Reduced to fix "request too large" errors
             if global_context_raw and global_context_raw['documents']:
                 for i, doc in enumerate(global_context_raw['documents'][0]):
                      meta = global_context_raw['metadatas'][0][i] if global_context_raw['metadatas'] else {}
@@ -118,41 +123,35 @@ class FinancialOrchestrator:
                 })
                 print(f"Orchestrator: Injected {len(investor_dna.custom_rules)} custom rules.")
 
-            # 2. Invoke Analysis Agents (Parallel Execution)
-            print("Orchestrator: Invoking agents (Parallel Execution)...")
+            # 2. Invoke Analysis Agents (Sequential Execution - no rate limits)
+            print("Orchestrator: Invoking agents (Sequential Execution)...")
             import time
-            from concurrent.futures import ThreadPoolExecutor, as_completed
             
             start_time = time.time()
             
-            # Map agent instances to their names for result organization
-            agent_map = {
-                quant_agent: "quant",
-                macro_agent: "macro",
-                philosopher_agent: "philosopher",
-                regret_agent: "regret"
-            }
+            # Agents list for sequential execution
+            agents = [
+                (quant_agent, "quant"),
+                (macro_agent, "macro"),
+                (philosopher_agent, "philosopher"),
+                (regret_agent, "regret")
+            ]
             
             agent_results = {}
             
-            # Use ThreadPoolExecutor for parallel calls
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                # Submit all tasks
-                future_to_agent = {
-                    executor.submit(agent.run, global_context): agent_map[agent] 
-                    for agent in agent_map
-                }
-                
-                # Collect results as they complete
-                for future in as_completed(future_to_agent):
-                    agent_name = future_to_agent[future]
-                    try:
-                        result = future.result()
-                        agent_results[agent_name] = result
-                        print(f"  → Agent {agent_name.upper()} completed.")
-                    except Exception as e:
-                        print(f"  ❌ Agent {agent_name.upper()} failed: {e}")
-                        agent_results[agent_name] = {"error": str(e), "analysis": f"Analysis failed: {str(e)}"}
+            # Run agents one by one with delay to avoid rate limits
+            for i, (agent, agent_name) in enumerate(agents):
+                try:
+                    print(f"  → Running {agent_name.upper()} Agent...")
+                    result = agent.run(global_context)
+                    agent_results[agent_name] = result
+                    print(f"  ✅ Agent {agent_name.upper()} completed.")
+                    # Add delay between agents to avoid rate limits (skip after last)
+                    if i < len(agents) - 1:
+                        time.sleep(3)
+                except Exception as e:
+                    print(f"  ❌ Agent {agent_name.upper()} failed: {e}")
+                    agent_results[agent_name] = {"error": str(e), "analysis": f"Analysis failed: {str(e)}"}
 
             elapsed = time.time() - start_time
             print(f"Orchestrator: Agent analysis completed in {elapsed:.2f} seconds")

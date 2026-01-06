@@ -1,4 +1,5 @@
 import React from 'react'
+// Force HMR update
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'

@@ -193,7 +193,7 @@ ELIDA is a web-based application with:
 2. Smart Router identifies intent → Financial Analysis
 3. Orchestrator triggers Scout Agent → Collect data
 4. Data stored in ChromaDB for RAG retrieval
-5. Parallel analysis by Quant, Macro, Phil, Regret agents
+5. Sequential analysis by Quant, Macro, Phil, Regret agents
 6. Each agent retrieves context from RAG
 7. Coach Agent synthesizes all insights
 8. Match Score calculated against Investor DNA

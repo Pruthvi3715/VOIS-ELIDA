@@ -9,6 +9,8 @@ import asyncio
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+from app.agents.coach import coach_agent
 
 load_dotenv()
 
@@ -65,9 +67,16 @@ app.include_router(profile_router)
 app.include_router(history_router)
 
 # Enable CORS for development
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://localhost:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -280,6 +289,7 @@ def get_market_data(asset_id: str, force_live: bool = True):
             "market_cap": financials.get("market_cap"),
             "currency": currency,
             "company_name": financials.get("company_name", asset_id),
+            "history": financials.get("history", []),
             "source": "live"
         }
     except Exception as e:
@@ -387,6 +397,23 @@ def compare_stocks(
             }
     
     return {"comparison": results, "tickers": ticker_list}
+
+
+class CompareRequest(BaseModel):
+    stock1: str
+    data1: Dict[str, Any]
+    stock2: str
+    data2: Dict[str, Any]
+
+@app.post("/api/compare/synthesize")
+def synthesize_comparison(req: CompareRequest):
+    """
+    Generate an AI-powered Head-to-Head comparison.
+    """
+    return coach_agent.compare_analysis(
+        req.stock1, req.data1,
+        req.stock2, req.data2
+    )
 
 
 AGENT_STAGES = [

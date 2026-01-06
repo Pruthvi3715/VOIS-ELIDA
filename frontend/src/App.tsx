@@ -11,9 +11,11 @@ import ProfilePage from './pages/ProfilePage';
 import AnalysisPage from './pages/AnalysisPage'; // Legacy, consider removing
 import AnalysisResultsPage from './pages/analysis/AnalysisResultsPage';
 import HistoryPage from './pages/history/HistoryPage';
+import HistoryDetailPage from './pages/history/HistoryDetailPage';
 import StockComparison from './pages/comparison/StockComparison';
 import SettingsPage from './pages/settings/SettingsPage';
 
+// Force HMR Update
 function App() {
   return (
     <Routes>
@@ -30,6 +32,7 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="history" element={<HistoryPage />} />
+        <Route path="history/:id" element={<HistoryDetailPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="analysis" element={<AnalysisPage />} />

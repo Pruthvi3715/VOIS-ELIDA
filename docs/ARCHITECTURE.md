@@ -44,7 +44,7 @@ flowchart TB
 
     subgraph External["🌐 External Services"]
         Yahoo[Yahoo Finance]
-        LLM[Gemini / Ollama]
+        LLM[Groq / Ollama / Gemini]
     end
 
     UI --> Router
@@ -102,12 +102,12 @@ sequenceDiagram
     O->>S: Collect Market Data
     S-->>O: Financials, News, Technicals
     
-    par Parallel Analysis
+    note over A: Sequential Analysis
         O->>A: Quant Analysis
         O->>A: Macro Analysis
         O->>A: Philosophy Check
         O->>A: Risk Simulation
-    end
+    end note
     
     A-->>O: Agent Insights (Scores + Reasoning)
     
