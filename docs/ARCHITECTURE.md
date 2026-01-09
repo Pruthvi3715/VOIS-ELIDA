@@ -102,12 +102,13 @@ sequenceDiagram
     O->>S: Collect Market Data
     S-->>O: Financials, News, Technicals
     
-    note over A: Sequential Analysis
+    rect rgb(30, 30, 40)
+        note right of O: Sequential Analysis
         O->>A: Quant Analysis
         O->>A: Macro Analysis
         O->>A: Philosophy Check
         O->>A: Risk Simulation
-    end note
+    end
     
     A-->>O: Agent Insights (Scores + Reasoning)
     

@@ -42,10 +42,12 @@ const AssetDetail: React.FC = () => {
         try {
             // Fixed: Use GET /analyze/{symbol} instead of POST /api/analyze
             const response = await axios.get(`http://localhost:8000/analyze/${symbol}`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 120000 // 120 seconds timeout
             });
             setAnalysis(response.data);
         } catch (err) {
+            console.error('Analysis failed:', err);
             setError('Analysis failed');
         } finally {
             setLoading(false);
