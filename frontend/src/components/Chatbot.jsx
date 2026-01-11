@@ -171,6 +171,23 @@ function Chatbot({ analysisData, assetId }) {
     const generateResponse = async (question, data, asset) => {
         const q = question.toLowerCase();
 
+        // Learning-related quick responses
+        if (q.includes('p/e') || q.includes('pe ratio') || q.includes('price to earnings')) {
+            return `**P/E Ratio (Price-to-Earnings)**\n\nIt's the stock price divided by earnings per share.\n\n📊 **How to interpret:**\n- Lower P/E = potentially cheaper (but investigate why)\n- Higher P/E = market expects growth\n- Compare within same industry\n\n💡 Visit the **Learn** section for more!`;
+        }
+
+        if (q.includes('market cap') || q.includes('marketcap')) {
+            return `**Market Cap (Market Capitalization)**\n\nTotal company value = Share Price × Total Shares\n\n📊 **Categories:**\n- Large Cap: >₹20,000 Cr (stable)\n- Mid Cap: ₹5,000-20,000 Cr (growth potential)\n- Small Cap: <₹5,000 Cr (higher risk/reward)\n\n💡 Check the **Learn** section for more!`;
+        }
+
+        if (q.includes('what is') && (q.includes('beta') || q.includes('volatility'))) {
+            return `**Beta (Volatility Measure)**\n\nMeasures how much a stock moves vs the market.\n\n📊 **How to read:**\n- Beta = 1: Moves with market\n- Beta > 1: More volatile (risky but higher potential)\n- Beta < 1: Less volatile (defensive)\n\n💡 Visit **Learn** for more terms!`;
+        }
+
+        if (q.includes('learn') || q.includes('tutorial') || q.includes('beginner') || q.includes('how to invest')) {
+            return `🎓 **Want to Learn?**\n\nCheck out our **Learn** section in the sidebar! It includes:\n\n📚 Free courses (Zerodha Varsity, Khan Academy)\n📹 YouTube channels\n📖 Book recommendations\n🔤 Quick term definitions\n\n**Click "Learn" in the menu to explore!**`;
+        }
+
         if (data && asset) {
             const financials = data?.market_data || {};
             const results = data?.results || {};

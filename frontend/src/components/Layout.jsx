@@ -13,6 +13,7 @@ function Layout() {
         { name: 'Analysis', path: '/analysis' },
         { name: 'History', path: '/history' },
         { name: 'Portfolio', path: '/portfolio' },
+        { name: 'Learn', path: '/learn' },
     ];
 
     const isActive = (path) => {

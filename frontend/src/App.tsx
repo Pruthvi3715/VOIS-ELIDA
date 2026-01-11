@@ -12,8 +12,11 @@ import AnalysisPage from './pages/AnalysisPage'; // Legacy, consider removing
 import AnalysisResultsPage from './pages/analysis/AnalysisResultsPage';
 import HistoryPage from './pages/history/HistoryPage';
 import HistoryDetailPage from './pages/history/HistoryDetailPage';
+import ComparePage from './pages/comparison/ComparePage';
 import StockComparison from './pages/comparison/StockComparison';
 import SettingsPage from './pages/settings/SettingsPage';
+import PrototypeDashboard from './pages/prototype/PrototypeDashboard';
+import LearnPage from './pages/LearnPage';
 
 // Force HMR Update
 function App() {
@@ -37,7 +40,10 @@ function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="analysis" element={<AnalysisPage />} />
         <Route path="analysis/:symbol" element={<AnalysisResultsPage />} />
+        <Route path="compare" element={<ComparePage />} />
         <Route path="compare/:symbol1/:symbol2" element={<StockComparison />} />
+        <Route path="learn" element={<LearnPage />} />
+        <Route path="prototype" element={<PrototypeDashboard />} />
       </Route>
 
       {/* Catch all */}
