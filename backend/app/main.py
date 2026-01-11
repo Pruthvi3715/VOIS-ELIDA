@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from app.core.errors import AppException, ResourceNotFound, InvalidRequest, LLMGenerationError, AuthenticationError
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 import os
 import json
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from app.agents.coach import coach_agent
+from app.core.security import limiter, validate_ticker, validate_query, RATE_LIMITS
 
 load_dotenv()
 
@@ -56,10 +58,48 @@ async def app_exception_handler(request: Request, exc: AppException):
         }
     )
 
+# Import our new exceptions and logging
+from app.core.exceptions import ElidaException, OrchestrationException, AgentException, DataFetchException, ValidationException, AuthException
+from app.core.logging import get_logger, setup_logging
+
+# Initialize logging
+main_logger = setup_logging()
+api_logger = get_logger("api")
+
+@app.exception_handler(ElidaException)
+async def elida_exception_handler(request: Request, exc: ElidaException):
+    """Handle all ELIDA-specific exceptions with structured response."""
+    status_code = 500
+    
+    # Map exception types to HTTP status codes
+    if isinstance(exc, DataFetchException):
+        status_code = 404
+        api_logger.warning(f"Data not found: {exc.message}")
+    elif isinstance(exc, ValidationException):
+        status_code = 400
+        api_logger.warning(f"Validation failed: {exc.message}")
+    elif isinstance(exc, AuthException):
+        status_code = 401
+        api_logger.warning(f"Auth failed: {exc.message}")
+    else:
+        api_logger.error(f"Request {request.url} failed: {exc.message}", extra=exc.details)
+
+    return JSONResponse(
+        status_code=status_code,
+        content=exc.to_dict()
+    )
+
 @app.on_event("startup")
 def startup_event():
     """Initialize database on startup."""
     init_db()
+
+# Rate Limiting Setup
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
+    status_code=429,
+    content={"status": "error", "code": "RATE_LIMITED", "message": f"Rate limit exceeded. {str(exc.detail)}"}
+))
 
 # Include routers
 app.include_router(auth_router)
@@ -70,6 +110,9 @@ app.include_router(history_router)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "http://localhost:5176",
     "http://localhost:3000",
     "http://localhost:8000",
 ]
@@ -170,9 +213,8 @@ def scan_portfolio(
 
     request_id = portfolio_service.create_request(db, user_id_int, req.tickers)
     
-    # Get profile snapshot
-    profile_dict = profile_service.get_profile_by_user_id(db, req.user_id)
-    profile = InvestorDNA(**profile_dict)
+    # Get properly mapped InvestorDNA profile
+    profile = profile_service.get_investor_dna(db, req.user_id)
     
     # Launch background task
     background_tasks.add_task(
@@ -206,14 +248,31 @@ def ingest_asset(asset_id: str, request: Request, user_id: str = Depends(get_cur
     """Ingest asset data into RAG knowledge base."""
     return orchestrator.ingest_asset(asset_id)
 
-def get_current_user_optional(user_id: str = "default"):
+def get_current_user_optional(request: Request) -> str:
     """
-    Dependency to get optional user ID.
-    Ideally this should verify token but allow failure.
-    For now, reusing the simple logic or placeholder.
+    Dependency to get user ID from JWT token if present.
+    Returns 'default' if no valid token provided (for backward compatibility).
     """
-    # TODO: Implement proper optional auth
-    return user_id
+    from app.auth.auth import decode_token
+    
+    auth_header = request.headers.get("Authorization", "")
+    print(f"DEBUG: Auth Header: {auth_header[:20]}...")
+    
+    if not auth_header.startswith("Bearer "):
+        print("DEBUG: No Bearer token found, using default user")
+        return "default"
+    
+    token = auth_header[7:]  # Remove "Bearer " prefix
+    payload = decode_token(token)
+    
+    if not payload:
+        print("DEBUG: Token decode failed, using default user")
+        return "default"
+    
+    user_id = payload.get("sub")
+    print(f"DEBUG: Configured User ID: {user_id}")
+    return str(user_id) if user_id else "default"
+
 
 @app.get("/retrieve")
 def retrieve(
@@ -225,9 +284,8 @@ def retrieve(
     """
     Retrieve analysis for an asset.
     """
-    # Get user's profile
-    profile_dict = profile_service.get_profile_by_user_id(db, user_id)
-    profile = InvestorDNA(**profile_dict)
+    # Get user's InvestorDNA profile with ethical filters properly mapped
+    profile = profile_service.get_investor_dna(db, user_id)
     
     result = orchestrator.retrieve_context(
         query=query,
@@ -251,7 +309,8 @@ def retrieve(
     return result
 
 @app.get("/market-data/{asset_id}")
-def get_market_data(asset_id: str, force_live: bool = True):
+@limiter.limit(RATE_LIMITS["market_data"])
+def get_market_data(request: Request, asset_id: str, force_live: bool = True):
     """
     Fast endpoint: Get only market data.
     By default fetches live data from Yahoo Finance.
@@ -295,11 +354,12 @@ def get_market_data(asset_id: str, force_live: bool = True):
     except Exception as e:
         print(f"[Market Data] Live fetch failed for {asset_id}: {e}")
         # Fallback to demo cache
-        demo = get_demo_analysis(asset_id)
-        if demo:
-            market_data = demo.get("market_data", {})
-            market_data["source"] = "demo_cache"
-            return market_data
+        if settings.ALLOW_DEMO_DATA:
+            demo = get_demo_analysis(asset_id)
+            if demo:
+                market_data = demo.get("market_data", {})
+                market_data["source"] = "demo_cache"
+                return market_data
         
         # Return error state
         return {
@@ -313,7 +373,9 @@ def get_market_data(asset_id: str, force_live: bool = True):
 
 
 @app.get("/analyze/{asset_id}")
+@limiter.limit(RATE_LIMITS["analysis"])
 def analyze_asset(
+    request: Request,
     asset_id: str, 
     demo: bool = False,
     user_id: str = Depends(get_current_user_optional),
@@ -322,14 +384,21 @@ def analyze_asset(
     """
     One-shot analysis: Ingest + Retrieve in a single call.
     Use demo=true for instant cached results (hackathon demo mode).
+    Now supports company names (e.g., 'Reliance' → 'RELIANCE.NS')
     """
-    if demo or is_demo_ticker(asset_id):
+    # Smart ticker resolution: Convert company name to ticker
+    from app.services.ticker_search_service import resolve_company_to_ticker
+    resolved_ticker, source = resolve_company_to_ticker(asset_id)
+    asset_id = resolved_ticker  # Use resolved ticker
+    
+    if settings.ALLOW_DEMO_DATA and (demo or is_demo_ticker(asset_id)):
         demo_result = get_demo_analysis(asset_id)
         if demo_result:
+            demo_result["ticker_resolution"] = {"original": asset_id, "resolved": resolved_ticker, "source": source}
             return demo_result
     
-    profile_dict = profile_service.get_profile_by_user_id(db, user_id)
-    profile = InvestorDNA(**profile_dict)
+    # Get user's InvestorDNA profile with ethical filters properly mapped
+    profile = profile_service.get_investor_dna(db, user_id)
     
     orchestrator.ingest_asset(asset_id)
     
@@ -364,6 +433,103 @@ def get_demo_tickers():
     }
 
 
+@app.get("/api/ticker/resolve/{query}")
+def resolve_ticker(query: str):
+    """
+    Smart ticker resolution: Convert company name to ticker symbol.
+    Examples: 'Reliance' → 'RELIANCE.NS', 'Apple' → 'AAPL'
+    """
+    from app.services.ticker_search_service import resolve_company_to_ticker
+    ticker, source = resolve_company_to_ticker(query)
+    return {
+        "original_query": query,
+        "ticker": ticker,
+        "source": source,
+        "message": f"Resolved '{query}' to '{ticker}'" if source != "passthrough" else f"Using '{ticker}' as-is"
+    }
+
+
+@app.get("/api/ticker/suggest")
+def get_ticker_suggestions(q: str, limit: int = 5):
+    """
+    Get autocomplete suggestions for company names/tickers.
+    """
+    from app.services.ticker_search_service import get_ticker_suggestions
+    suggestions = get_ticker_suggestions(q, limit)
+    return {
+        "query": q,
+        "suggestions": suggestions
+    }
+
+
+@app.get("/api/chart/{ticker}")
+def get_chart_data(ticker: str, period: str = "1mo", interval: str = "1d"):
+    """
+    Get OHLC candlestick data for charting using yahooquery.
+    
+    Args:
+        ticker: Stock ticker (e.g., RELIANCE.NS, AAPL)
+        period: Data period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, max)
+        interval: Data interval (1m, 5m, 15m, 1h, 1d, 1wk, 1mo)
+    
+    Returns:
+        OHLC data array for candlestick/line charts
+    """
+    from yahooquery import Ticker
+    from datetime import datetime
+    
+    try:
+        # Resolve company name to ticker if needed
+        from app.services.ticker_search_service import resolve_company_to_ticker
+        resolved_ticker, _ = resolve_company_to_ticker(ticker)
+        
+        # Fetch historical data using yahooquery
+        stock = Ticker(resolved_ticker)
+        hist = stock.history(period=period, interval=interval)
+        
+        # Handle MultiIndex DataFrame from yahooquery
+        if isinstance(hist, dict) or hist.empty:
+            raise HTTPException(status_code=404, detail=f"No chart data found for {resolved_ticker}")
+        
+        # If MultiIndex, reset to get symbol column
+        if 'symbol' in hist.index.names:
+            hist = hist.reset_index()
+        
+        # Format data for frontend charting
+        chart_data = []
+        for _, row in hist.iterrows():
+            # Get date from 'date' column after reset_index
+            date_val = row.get('date', row.name) if 'date' in hist.columns else row.name
+            
+            # Handle date formatting
+            if hasattr(date_val, 'strftime'):
+                date_str = date_val.strftime("%Y-%m-%d %H:%M") if interval in ["1m", "5m", "15m", "1h"] else date_val.strftime("%Y-%m-%d")
+                timestamp = int(date_val.timestamp() * 1000)
+            else:
+                date_str = str(date_val)
+                timestamp = 0
+            
+            chart_data.append({
+                "date": date_str,
+                "timestamp": timestamp,
+                "open": round(float(row.get("open", row.get("Open", 0))), 2),
+                "high": round(float(row.get("high", row.get("High", 0))), 2),
+                "low": round(float(row.get("low", row.get("Low", 0))), 2),
+                "close": round(float(row.get("close", row.get("Close", 0))), 2),
+                "volume": int(row.get("volume", row.get("Volume", 0)))
+            })
+        
+        return {
+            "ticker": resolved_ticker,
+            "period": period,
+            "interval": interval,
+            "data_points": len(chart_data),
+            "data": chart_data
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch chart data: {str(e)}")
+
 @app.get("/api/compare")
 def compare_stocks(
     tickers: str,
@@ -377,24 +543,25 @@ def compare_stocks(
     results = {}
     
     for ticker in ticker_list[:4]:
-        demo = get_demo_analysis(ticker)
-        if demo:
-            results[ticker] = {
-                "ticker": ticker,
-                "match_score": demo["match_score"],
-                "verdict": demo["coach_verdict"]["verdict"],
-                "confidence": demo["coach_verdict"]["confidence"],
-                "summary": demo["match_result"]["summary"],
-                "market_data": demo["market_data"],
-                "breakdown": demo["match_result"]["breakdown"],
-                "fit_reasons": demo["match_result"]["fit_reasons"][:2],
-                "concern_reasons": demo["match_result"]["concern_reasons"][:2]
-            }
+        if settings.ALLOW_DEMO_DATA:
+            demo = get_demo_analysis(ticker)
+            if demo:
+                results[ticker] = {
+                    "ticker": ticker,
+                    "match_score": demo["match_score"],
+                    "verdict": demo["coach_verdict"]["verdict"],
+                    "confidence": demo["coach_verdict"]["confidence"],
+                    "summary": demo["match_result"]["summary"],
+                    "market_data": demo["market_data"],
+                    "breakdown": demo["match_result"]["breakdown"],
+                    "fit_reasons": demo["match_result"]["fit_reasons"][:2],
+                    "concern_reasons": demo["match_result"]["concern_reasons"][:2]
+                }
+            else:
+                 results[ticker] = {"error": "Demo data disabled or not found"}
         else:
-            results[ticker] = {
-                "ticker": ticker,
-                "error": "Not a demo ticker - use demo tickers for instant comparison"
-            }
+            # TODO: Implement real comparison fetching
+            results[ticker] = {"error": "Real comparison not yet implemented"}
     
     return {"comparison": results, "tickers": ticker_list}
 
@@ -481,27 +648,55 @@ def get_rag_stats():
 
 
 @app.post("/chat/general")
-async def general_chat(request: dict, db: Session = Depends(get_db)):
+@limiter.limit(RATE_LIMITS["chat"])
+async def general_chat(req: Request, request: dict, db: Session = Depends(get_db)):
     """
-    Handle general queries using Wikipedia and Web Scraping.
+    Handle general queries using Knowledge Base + LLM (RAG style).
+    KB provides fast retrieval context, LLM generates conversational response.
     """
     query = request.get("query", "")
     if not query:
         raise HTTPException(status_code=400, detail="Query is required")
     
-    # TODO: Get user_id from request if available
     user_id_str = request.get("user_id", "default")
-    
     answer = ""
+    kb_context = ""
     
-    # -1. Try Qwen/Ollama (Local LLM)
+    # 0. FIRST: Check Finance Knowledge Base for context (RAG Retrieval)
+    from app.services.finance_knowledge_base import lookup_knowledge_base
+    kb_entry = lookup_knowledge_base(query)
+    if kb_entry:
+        kb_context = f"""
+KNOWLEDGE BASE CONTEXT:
+Term: {kb_entry['term']}
+Definition: {kb_entry['definition']}
+Why Important: {kb_entry['why_important']}
+Simple Explanation: {kb_entry['simple_explanation']}
+"""
+    
+    # 1. Try Qwen/Ollama with KB context (Local LLM)
     ollama_model = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
     ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
     
     try:
         import requests
-        print(f"Asking Qwen ({ollama_model})...")
-        qwen_prompt = f"""You are a helpful financial assistant. Answer the following query concisely.
+        print(f"Asking Qwen ({ollama_model}) with KB context...")
+        
+        # Build RAG-style prompt with KB context
+        if kb_context:
+            qwen_prompt = f"""You are ELIDA, a helpful financial assistant. Use the following knowledge base context to answer the user's question in a conversational, friendly way.
+
+{kb_context}
+
+User Question: {query}
+
+Instructions:
+- Explain in simple terms
+- Use the context provided but make it conversational
+- Add a practical example if helpful
+- Keep response concise (2-3 paragraphs max)"""
+        else:
+            qwen_prompt = f"""You are ELIDA, a helpful financial assistant. Answer the following query concisely.
 If the query requires real-time data (like current stock price) or if you honestly don't know, respond with exactly: SEARCH_REQUIRED
 
 Query: {query}"""
@@ -525,7 +720,7 @@ Query: {query}"""
     except Exception as e:
         print(f"Qwen error: {e}")
     
-    # 0. Try Gemini API 
+    # 2. Try Gemini API with KB context
     if not answer:
         gemini_key = os.getenv("GEMINI_API_KEY")
         if gemini_key:
@@ -534,8 +729,21 @@ Query: {query}"""
                 genai.configure(api_key=gemini_key)
                 model = genai.GenerativeModel('gemini-2.0-flash-exp') 
                 
-                # Contextual prompt
-                prompt = f"""
+                # RAG-style prompt with KB context
+                if kb_context:
+                    prompt = f"""You are ELIDA, a helpful financial assistant. Use the following knowledge base context to answer the user's question in a conversational, friendly way.
+
+{kb_context}
+
+User Question: {query}
+
+Instructions:
+- Explain in simple terms
+- Use the context provided but make it conversational  
+- Add a practical example if helpful
+- Keep response concise (2-3 paragraphs max)"""
+                else:
+                    prompt = f"""
                 You are a helpful financial assistant named ELIDA. 
                 Answer the following query concisely and accurately. 
                 If it's a financial term, explain it simply.
@@ -545,6 +753,7 @@ Query: {query}"""
                 response = model.generate_content(prompt)
                 if response.text:
                     answer = response.text
+                    source = "kb+gemini" if kb_context else "gemini"
                     # Save to History (Gemini)
                     try:
                         uid = int(user_id_str)

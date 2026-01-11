@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Sparkles, AlertTriangle, TrendingUp, HelpCircle, X, MessageCircle } from 'lucide-react';
+import { Send, Bot, User, Loader2, Sparkles, AlertTriangle, TrendingUp, HelpCircle, X, MessageCircle, Maximize2, Minimize2 } from 'lucide-react';
 
 /**
  * Chat Message Component - Dark Theme
@@ -9,8 +9,8 @@ function ChatMessage({ message, isBot, isLoading }) {
         <div className={`flex gap-3 ${isBot ? '' : 'flex-row-reverse'}`}>
             {/* Avatar */}
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${isBot
-                    ? 'bg-gradient-to-br from-primary-500/20 to-accent-dark/20 border-primary-500/30'
-                    : 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30'
+                ? 'bg-gradient-to-br from-primary-500/20 to-accent-dark/20 border-primary-500/30'
+                : 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30'
                 }`}>
                 {isBot ? (
                     <Bot className="w-4 h-4 text-primary-400" />
@@ -21,8 +21,8 @@ function ChatMessage({ message, isBot, isLoading }) {
 
             {/* Message */}
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${isBot
-                    ? 'bg-surface-light/80 border border-glass-border text-gray-200'
-                    : 'bg-gradient-to-r from-primary-600 to-accent-dark text-white'
+                ? 'bg-surface-light/80 border border-glass-border text-gray-200'
+                : 'bg-gradient-to-r from-primary-600 to-accent-dark text-white'
                 }`}>
                 {isLoading ? (
                     <div className="flex items-center gap-2 text-gray-400">
@@ -53,7 +53,7 @@ function QuickAction({ icon, label, onClick }) {
 }
 
 /**
- * Chatbot Interface Component - Dark Theme
+ * Chatbot Interface Component - Dark Theme with Resizable Window
  * Floating, collapsible widget matching ELIDA theme
  */
 function Chatbot({ analysisData, assetId }) {
@@ -61,7 +61,17 @@ function Chatbot({ analysisData, assetId }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [size, setSize] = useState({ width: 384, height: 600 }); // Default: w-96 = 384px
+    const [isResizing, setIsResizing] = useState(false);
     const messagesEndRef = useRef(null);
+    const chatRef = useRef(null);
+
+    // Size constraints
+    const MIN_WIDTH = 320;
+    const MAX_WIDTH = 600;
+    const MIN_HEIGHT = 400;
+    const MAX_HEIGHT = 800;
 
     // Initial Greeting
     useEffect(() => {
@@ -94,6 +104,45 @@ function Chatbot({ analysisData, assetId }) {
         return greeting;
     };
 
+    // Resize handlers
+    const handleResizeStart = (e) => {
+        e.preventDefault();
+        setIsResizing(true);
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = size.width;
+        const startHeight = size.height;
+
+        const handleMouseMove = (moveEvent) => {
+            const deltaX = startX - moveEvent.clientX; // Inverted for top-left corner
+            const deltaY = startY - moveEvent.clientY;
+
+            const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + deltaX));
+            const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + deltaY));
+
+            setSize({ width: newWidth, height: newHeight });
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    const toggleExpand = () => {
+        if (isExpanded) {
+            setSize({ width: 384, height: 600 });
+        } else {
+            setSize({ width: MAX_WIDTH, height: MAX_HEIGHT });
+        }
+        setIsExpanded(!isExpanded);
+    };
+
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
 
@@ -117,18 +166,11 @@ function Chatbot({ analysisData, assetId }) {
 
     const handleQuickAction = (question) => {
         setInput(question);
-        // Optional: Auto-send
-        // handleSend();
     };
 
     const generateResponse = async (question, data, asset) => {
-        // 1. If we have context data, try to answer from it locally first (simple heuristic)
-        // OR just send everything to backend.
-        // Given complexity, let's try local heuristics for Data first, then fallback to backend Chat (Qwen/Google)
-
         const q = question.toLowerCase();
 
-        // Use local heuristics ONLY if we have data AND the question matches specific patterns
         if (data && asset) {
             const financials = data?.market_data || {};
             const results = data?.results || {};
@@ -143,9 +185,7 @@ function Chatbot({ analysisData, assetId }) {
             }
         }
 
-        // 2. Fallback to Backend General Chat (which now includes Qwen -> Google)
         try {
-            // Construct a context-aware query if possible
             let finalQuery = question;
             if (asset && data) {
                 finalQuery = `Context: Analyzing ${asset}. User Question: ${question}`;
@@ -166,9 +206,22 @@ function Chatbot({ analysisData, assetId }) {
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 font-sans">
-            {/* Chat Window - Dark Theme */}
+            {/* Chat Window - Dark Theme with Resizable */}
             {isOpen && (
-                <div className="w-96 h-[600px] bg-surface rounded-2xl shadow-glass-lg border border-glass-border flex flex-col overflow-hidden animate-fade-in origin-bottom-right transition-all backdrop-blur-xl">
+                <div
+                    ref={chatRef}
+                    style={{ width: size.width, height: size.height }}
+                    className={`bg-surface rounded-2xl shadow-glass-lg border border-glass-border flex flex-col overflow-hidden animate-fade-in origin-bottom-right backdrop-blur-xl ${isResizing ? 'select-none' : 'transition-all'}`}
+                >
+                    {/* Resize Handle - Top Left Corner */}
+                    <div
+                        onMouseDown={handleResizeStart}
+                        className="absolute top-0 left-0 w-4 h-4 cursor-nwse-resize z-10 group"
+                        title="Drag to resize"
+                    >
+                        <div className="absolute top-1 left-1 w-2 h-2 border-t-2 border-l-2 border-gray-500 group-hover:border-primary-400 transition-colors rounded-tl" />
+                    </div>
+
                     {/* Header - Gradient */}
                     <div className="bg-gradient-to-r from-primary-600/90 to-accent-dark/90 text-white px-4 py-3 flex items-center justify-between shadow-lg backdrop-blur-sm">
                         <div className="flex items-center gap-3">
@@ -183,12 +236,26 @@ function Chatbot({ analysisData, assetId }) {
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                            <X className="w-5 h-5 text-white/70 hover:text-white" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                            {/* Expand/Collapse Button */}
+                            <button
+                                onClick={toggleExpand}
+                                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                                title={isExpanded ? "Minimize" : "Maximize"}
+                            >
+                                {isExpanded ? (
+                                    <Minimize2 className="w-4 h-4 text-white/70 hover:text-white" />
+                                ) : (
+                                    <Maximize2 className="w-4 h-4 text-white/70 hover:text-white" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-white/70 hover:text-white" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Quick Actions (if context exists) - Dark Theme */}
@@ -229,6 +296,13 @@ function Chatbot({ analysisData, assetId }) {
                             </button>
                         </div>
                     </div>
+
+                    {/* Size indicator while resizing */}
+                    {isResizing && (
+                        <div className="absolute bottom-2 left-2 text-xs text-gray-500 bg-surface-light/80 px-2 py-1 rounded">
+                            {size.width} × {size.height}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -236,8 +310,8 @@ function Chatbot({ analysisData, assetId }) {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-14 h-14 rounded-full shadow-glow flex items-center justify-center transition-all duration-300 hover:scale-110 ${isOpen
-                        ? 'bg-surface-light border border-glass-border rotate-90'
-                        : 'bg-gradient-to-r from-primary-600 to-accent-dark hover:shadow-glow-lg'
+                    ? 'bg-surface-light border border-glass-border rotate-90'
+                    : 'bg-gradient-to-r from-primary-600 to-accent-dark hover:shadow-glow-lg'
                     }`}
             >
                 {isOpen ? (
@@ -251,3 +325,4 @@ function Chatbot({ analysisData, assetId }) {
 }
 
 export default Chatbot;
+
