@@ -1,3 +1,7 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from typing import Optional, Dict, Any, List, Tuple
+
 from app.agents.scout import scout_agent
 from app.services.rag_service import rag_service
 from app.services.match_score_service import match_score_service
@@ -7,7 +11,10 @@ from app.agents.philosopher import philosopher_agent
 from app.agents.regret import regret_agent
 from app.agents.coach import coach_agent
 from app.models.investor_dna import InvestorDNA, DEFAULT_INVESTOR_DNA
-from typing import Optional, Dict, Any
+from app.core.logging import get_logger
+from app.core.exceptions import OrchestrationException, AgentException, DataFetchException
+
+logger = get_logger("orchestrator")
 
 
 class FinancialOrchestrator:
@@ -27,12 +34,12 @@ class FinancialOrchestrator:
         """
         Phase 1: Ingestion & Memory Population
         """
-        print(f"Orchestrator: Starting ingestion for {asset_id}")
+        logger.info(f"Starting ingestion for {asset_id}")
         try:
             # 0. Clear old cache for this asset (ensure fresh analysis)
             deleted_count = rag_service.delete_by_asset(asset_id)
             if deleted_count > 0:
-                print(f"Orchestrator: Cleared {deleted_count} cached documents for {asset_id}")
+                logger.debug(f"Cleared {deleted_count} cached documents for {asset_id}")
             
             # 1. Scout collects data
             raw_data = scout_agent.collect_data(asset_id)
@@ -68,7 +75,7 @@ class FinancialOrchestrator:
                 
             # 3. Store in Shared Memory (RAG)
             rag_service.add_documents(documents, metadatas)
-            print(f"Orchestrator: Ingestion complete for {asset_id}")
+            logger.info(f"Ingestion complete for {asset_id}")
             
             # Return technicals (including history) to the frontend
             return {
@@ -77,10 +84,12 @@ class FinancialOrchestrator:
                 "market_data": raw_data.get("technicals", {}),
                 "data_quality": raw_data.get("data_quality", {})
             }
+        except DataFetchException:
+            # Re-raise explicit data errors so the API can handle them (e.g. 404)
+            raise
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            raise e
+            logger.error(f"Ingestion failed for {asset_id}: {e}")
+            raise OrchestrationException(asset_id, "ingestion", str(e))
 
     def retrieve_context(
         self, 
@@ -96,23 +105,99 @@ class FinancialOrchestrator:
             if investor_dna is None:
                 investor_dna = DEFAULT_INVESTOR_DNA
             
-            # 1. Centralized Retrieval (Scoped to current Asset) - OPTIMIZED for speed
-            print(f"Orchestrator: Retrieving context for {asset_id}...")
+            # 1. Centralized Retrieval - Get asset-specific AND global data
+            logger.info(f"Retrieving context for {asset_id}...")
+            
+            # Query asset-specific data (financials, technicals, news)
             global_context_raw = rag_service.query(
                 query_text=f"Financial analysis of {asset_id}", 
-                n_results=5,  # Reduced from 15 for faster LLM processing
+                n_results=15,  # Increased for better coverage
                 where={"asset_id": asset_id}
+            )
+            
+            # Also query global macro data (stored with asset_id="GLOBAL")
+            macro_context_raw = rag_service.query(
+                query_text="macro economic indicators interest rates GDP inflation",
+                n_results=3,
+                where={"asset_id": "GLOBAL"}
             )
             
             # Convert to list of dicts with context trimming
             global_context = []
-            MAX_CONTENT_CHARS = 500  # Reduced to fix "request too large" errors
+            MAX_CONTENT_CHARS = 2500  # Increased for better quality
+            
+            # Process asset-specific data
             if global_context_raw and global_context_raw['documents']:
                 for i, doc in enumerate(global_context_raw['documents'][0]):
                      meta = global_context_raw['metadatas'][0][i] if global_context_raw['metadatas'] else {}
-                     # Trim long content to reduce LLM prompt size
                      trimmed_doc = doc[:MAX_CONTENT_CHARS] if len(doc) > MAX_CONTENT_CHARS else doc
                      global_context.append({"content": trimmed_doc, "metadata": meta})
+            
+            # Process global macro data
+            if macro_context_raw and macro_context_raw['documents']:
+                for i, doc in enumerate(macro_context_raw['documents'][0]):
+                     meta = macro_context_raw['metadatas'][0][i] if macro_context_raw['metadatas'] else {}
+                     trimmed_doc = doc[:MAX_CONTENT_CHARS] if len(doc) > MAX_CONTENT_CHARS else doc
+                     global_context.append({"content": trimmed_doc, "metadata": meta})
+            
+            # CRITICAL: Inject cached asset data directly for reliable agent access
+            cached_data = self.current_asset_data.get(asset_id, {})
+            
+            # HALLUCINATION PREVENTION: Always inject company name first
+            company_name = cached_data.get("financials", {}).get("company_name", asset_id)
+            sector = cached_data.get("financials", {}).get("sector", "Unknown")
+            industry = cached_data.get("financials", {}).get("industry", "Unknown")
+            
+            global_context.insert(0, {
+                "content": f"ANALYZING: {company_name} (Symbol: {asset_id})\nSector: {sector}\nIndustry: {industry}\n\nIMPORTANT: All analysis below is ONLY for {company_name}. Do NOT mention or analyze any other company.",
+                "metadata": {"asset_id": asset_id, "type": "company_identifier", "source": "system", "priority": "HIGH"}
+            })
+            
+            if cached_data:
+                # Financials
+                if cached_data.get("financials"):
+                    global_context.append({
+                        "content": str(cached_data["financials"]),
+                        "metadata": {"asset_id": asset_id, "type": "financials", "source": "direct_cache"}
+                    })
+                # Technicals  
+                if cached_data.get("technicals"):
+                    global_context.append({
+                        "content": str(cached_data["technicals"]),
+                        "metadata": {"asset_id": asset_id, "type": "technicals", "source": "direct_cache"}
+                    })
+                # Macro
+                if cached_data.get("macro"):
+                    global_context.append({
+                        "content": str(cached_data["macro"]),
+                        "metadata": {"asset_id": "GLOBAL", "type": "macro", "source": "direct_cache"}
+                    })
+                
+                # News (CRITICAL for Philosopher/Regret)
+                if cached_data.get("news"):
+                    news_items = cached_data["news"]
+                    # Format news for better readability by agents
+                    news_text = "RECENT NEWS:\n"
+                    if isinstance(news_items, list):
+                        for item in news_items[:10]: # Limit to top 10 relevant news
+                           if isinstance(item, dict):
+                               news_text += f"- {item.get('title', '')} ({item.get('publisher', 'Unknown')})\n"
+                           else:
+                               news_text += f"- {str(item)}\n"
+                    
+                    global_context.append({
+                        "content": news_text,
+                        "metadata": {"asset_id": asset_id, "type": "news", "source": "direct_cache"}
+                    })
+
+                # Company Profile/Summary (CRITICAL for alignment)
+                if cached_data.get("financials", {}).get("company_profile"):
+                     global_context.append({
+                        "content": f"COMPANY PROFILE: {cached_data['financials']['company_profile']}",
+                        "metadata": {"asset_id": asset_id, "type": "profile", "source": "direct_cache"}
+                    })
+                
+                logger.info(f"Injected {len([k for k in cached_data if cached_data.get(k)])} cached data types for {asset_id}")
 
             # Inject Custom Rules into Context
             if investor_dna.custom_rules:
@@ -121,43 +206,51 @@ class FinancialOrchestrator:
                     "content": rules_text, 
                     "metadata": {"type": "user_instructions", "source": "investor_dna"}
                 })
-                print(f"Orchestrator: Injected {len(investor_dna.custom_rules)} custom rules.")
+                logger.info(f"Injected {len(investor_dna.custom_rules)} custom rules")
 
-            # 2. Invoke Analysis Agents (Sequential Execution - no rate limits)
-            print("Orchestrator: Invoking agents (Sequential Execution)...")
+            # 2. Invoke Analysis Agents (PARALLEL Execution for speed)
+            logger.info("Invoking agents in PARALLEL...")
             import time
             
             start_time = time.time()
             
-            # Agents list for sequential execution
-            agents = [
+            # Agents list for parallel execution
+            agents: List[Tuple] = [
                 (quant_agent, "quant"),
                 (macro_agent, "macro"),
                 (philosopher_agent, "philosopher"),
                 (regret_agent, "regret")
             ]
             
-            agent_results = {}
-            
-            # Run agents one by one with delay to avoid rate limits
-            for i, (agent, agent_name) in enumerate(agents):
+            def run_single_agent(agent_tuple):
+                """Run a single agent and return result with name."""
+                agent, agent_name = agent_tuple
                 try:
-                    print(f"  → Running {agent_name.upper()} Agent...")
+                    logger.debug(f"Starting {agent_name.upper()} Agent...")
                     result = agent.run(global_context)
-                    agent_results[agent_name] = result
-                    print(f"  ✅ Agent {agent_name.upper()} completed.")
-                    # Add delay between agents to avoid rate limits (skip after last)
-                    if i < len(agents) - 1:
-                        time.sleep(3)
+                    logger.info(f"[OK] Agent {agent_name.upper()} completed")
+                    return agent_name, result
                 except Exception as e:
-                    print(f"  ❌ Agent {agent_name.upper()} failed: {e}")
-                    agent_results[agent_name] = {"error": str(e), "analysis": f"Analysis failed: {str(e)}"}
+                    logger.error(f"[ERROR] Agent {agent_name.upper()} failed: {e}")
+                    return agent_name, {
+                        "error": str(e), 
+                        "analysis": f"Analysis failed: {str(e)}",
+                        "score": 50,
+                        "confidence": 0
+                    }
+            
+            # Run all agents in parallel using ThreadPoolExecutor
+            agent_results = {}
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                futures = list(executor.map(run_single_agent, agents))
+                for agent_name, result in futures:
+                    agent_results[agent_name] = result
 
             elapsed = time.time() - start_time
-            print(f"Orchestrator: Agent analysis completed in {elapsed:.2f} seconds")
+            logger.info(f"Agent analysis completed in {elapsed:.2f} seconds (parallel)")
             
             # 3. Calculate Match Score
-            print("Orchestrator: Calculating Match Score...")
+            logger.info("Calculating Match Score...")
             asset_data = self.current_asset_data.get(asset_id, {})
             
             # If we don't have cached data, reconstruct from RAG
@@ -170,7 +263,7 @@ class FinancialOrchestrator:
                 investor_dna=investor_dna
             )
             
-            print(f"Orchestrator: Match Score = {match_result.match_score}%")
+            logger.info(f"Match Score = {match_result.match_score}%")
             
             # 4. Store Agent Insights to RAG
             insight_docs = []
@@ -189,7 +282,7 @@ class FinancialOrchestrator:
             rag_service.add_documents(insight_docs, insight_metas)
             
             # 5. Retrieve Insights for Coach
-            print("Orchestrator: Retrieving Insights from RAG for Coach...")
+            logger.debug("Retrieving Insights from RAG for Coach...")
             coach_context_raw = rag_service.query(
                 query_text=f"Analysis of {asset_id}", 
                 n_results=10, 
@@ -202,7 +295,7 @@ class FinancialOrchestrator:
                      coach_context.append({"content": doc, "metadata": {"type": "agent_insight"}})
 
             # 6. Coach Synthesis
-            print("Orchestrator: Invoking Coach (RAG Mode)...")
+            logger.info("Invoking Coach for final synthesis...")
             coach_result = coach_agent.run(coach_context)
             
             return {

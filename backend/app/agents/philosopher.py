@@ -33,43 +33,25 @@ class PhilosopherAgent(BaseAgent):
         
         context_str = "\n".join([str(c.get("content")) for c in context])
         
-        prompt = f"""
-        You are the Philosophical and Long-Term Alignment Agent.
+        prompt = f"""Evaluate ethical/long-term alignment. Return JSON only.
 
-        ROLE:
-        Evaluate the investment's alignment with sustainable wealth creation and ethical principles. Move beyond generic ESG labels.
+DATA:
+{context_str if context_str else "No company data available"}
 
-        FACTORS:
-        - Moat Sustainability: Is the business model durable for 10+ years?
-        - Governance: Alignment of incentives (Management ownership vs compensation).
-        - Social License: Does society *want* this company to exist?
-        - Negative Externalities: Pollution, addiction, etc.
+OUTPUT FORMAT:
+{{
+    "alignment": "Low|Medium|High",
+    "confidence": 0-100,
+    "reasoning": "2-3 sentences on moat durability, governance quality, and social impact",
+    "ethical_strengths": ["1-2 positives"],
+    "ethical_concerns": ["1-2 concerns"]
+}}
 
-        OUTPUT FORMAT (STRICT JSON):
-        {{
-            "alignment": "<Low|Medium|High>",
-            "confidence": <0-100>,
-            "factors_analyzed": [
-                {{"factor": "name", "assessment": "positive/neutral/negative", "reasoning": "Specific detail"}}
-            ],
-            "ethical_strengths": ["Specific positive attribute"],
-            "ethical_concerns": ["Specific negative attribute (e.g., 'pending lawsuit regarding X')"],
-            "long_term_outlook": "10-year view assessment",
-            "reasoning": "PHILOSOPHICAL TREATISE: Write 2-3 paragraphs. Discuss the tension between profit and principle for this specific asset. Is it a 'Compounder' or a 'Cigar Butt'? Justify the alignment score."
-        }}
-
-        RULES:
-        1. BE NUANCED. Few companies are "Pure Good" or "Pure Evil". Explore the grey areas.
-        2. FOCUS ON DURABILITY. Ethics often correlates with longevity.
-        3. CITE EVIDENCE. "Governance is weak because X..."
-
-        CONTEXT (Retrieved from RAG):
-        {context_str if context_str else "No company data available in context."}
-        """
+Consider: Business moat (10+ year durability), Management integrity, ESG factors."""
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a Philosopher analyzing investments for ethical alignment. Output valid JSON. Be thoughtful and balanced.",
+            system_prompt="You are a Philosopher analyzing investments for ethical alignment. Output valid JSON. Be thoughtful and balanced. CRITICAL: Only analyze the company specified in the context. Never mention or analyze any other company.",
             fallback_func=self._sector_based_analysis,
             fallback_args=context
         )

@@ -49,47 +49,25 @@ class RegretAgent(BaseAgent):
         
         context_str = "\n".join([str(c.get("content")) for c in context])
         
-        prompt = f"""
-        You are the Regret Simulation and Downside Risk Agent.
+        prompt = f"""Identify downside risks. Return JSON only.
 
-        ROLE:
-        Identify SPECIFIC, PLAUSIBLE downside scenarios. Avoid generic "market crash" risks. Focus on idiosyncratic risks.
+DATA:
+{context_str if context_str else "No risk data available"}
 
-        RISK CATEGORIES:
-        - Company-Specific: Product failure, management scandal, earnings miss.
-        - Sector-Specific: Regulatory change, commodity price shock.
-        - Macro: Recession, rate hike impact.
+OUTPUT FORMAT:
+{{
+    "risk_level": "Low|Medium|High",
+    "confidence": 0-100,
+    "reasoning": "2-3 sentences on key risks with impact estimates",
+    "max_drawdown_estimate": "XX-YY%",
+    "scenarios": ["Top 2 specific risk scenarios with estimated impact"]
+}}
 
-        OUTPUT FORMAT (STRICT JSON):
-        {{
-            "risk_level": "<Low|Medium|High>",
-            "confidence": <0-100>,
-            "scenarios": [
-                {{
-                    "name": "Detailed Scenario Name",
-                    "probability": "<Low|Medium|High>",
-                    "impact": "Specific consequence (e.g., 'Revenue drops 20%')",
-                    "estimated_drawdown": "<e.g. 15-20%>"
-                }}
-            ],
-            "max_drawdown_estimate": "<worst case %>",
-            "risk_mitigants": ["Specific factor that protects the downside"],
-            "vulnerabilities": ["Specific weakness exposed in these scenarios"],
-            "reasoning": "DETAILED SIMULATION: Describe the 'Pre-Mortem'. Imagine it is 1 year later and the investment failed. Explain exactly WHAT went wrong and WHY. be narrative and specific."
-        }}
-
-        RULES:
-        1. BE SPECIFIC. "Competition" is bad. "Aggressive pricing by competitor X eroding margins by 500bps" is good.
-        2. ESTIMATE IMPACT. Quantify the damage where possible.
-        3. NO FEAR MONGERING. scenarios must be grounded in reality/context.
-
-        CONTEXT (Retrieved from RAG):
-        {context_str if context_str else "No risk data available in context."}
-        """
+Focus on: Company-specific risks, Sector risks, Macro risks. Quantify impact where possible."""
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a Risk Analyst focused on downside scenarios. Output valid JSON. Be thorough but realistic.",
+            system_prompt="You are a Risk Analyst focused on downside scenarios. Output valid JSON. Be thorough but realistic. CRITICAL: Only analyze the company specified in the context. Never mention or analyze any other company.",
             fallback_func=self._sector_risk_analysis,
             fallback_args=context
         )
