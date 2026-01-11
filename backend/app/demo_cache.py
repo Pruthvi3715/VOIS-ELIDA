@@ -1,4 +1,101 @@
 DEMO_ANALYSES = {
+    "ASIANPAINTS.NS": {
+        "orchestration_id": "demo_asianpaints",
+        "asset_id": "ASIANPAINTS.NS",
+        "match_score": 75,
+        "match_result": {
+            "score": 75,
+            "recommendation": "HOLD",
+            "action_if_owned": "HOLD - Quality business but premium valuation",
+            "action_if_not_owned": "WAIT - Look for better entry points below 2800",
+            "fit_reasons": [
+                "Market leader in decorative paints with 50%+ market share",
+                "Strong brand moat and distribution network",
+                "Consistent dividend payer with 1.2% yield",
+                "Expanding into adjacent categories"
+            ],
+            "concern_reasons": [
+                "Premium valuation at 65x P/E",
+                "Raw material cost volatility (crude, titanium dioxide)",
+                "Increasing competition from Grasim/Birla Opus"
+            ],
+            "summary": "Asian Paints is India's premier decorative paints company with excellent fundamentals but trades at premium valuations. Best suited for long-term investors.",
+            "breakdown": {
+                "fundamental": 78,
+                "macro": 72,
+                "philosophy": 85,
+                "risk": 70,
+                "dna_match": 75
+            }
+        },
+        "coach_verdict": {
+            "verdict": "HOLD",
+            "confidence": 75,
+            "summary": "Asian Paints is a quality compounder with strong brand and distribution moat. However, current valuations leave limited upside. Consider accumulating on corrections below 2800."
+        },
+        "results": {
+            "quant": {
+                "score": 78,
+                "analysis": "Asian Paints has ROE of 25%, operating margins of 18%, and revenue growth of 10% YoY. P/E of 65x is expensive vs historical average of 55x. Balance sheet is strong with minimal debt.",
+                "confidence": 80,
+                "sentiment": "neutral",
+                "output": {
+                    "pe_ratio": 65.0,
+                    "roe": 0.25,
+                    "debt_to_equity": 0.15,
+                    "profit_margins": 0.18
+                }
+            },
+            "macro": {
+                "score": 72,
+                "trend": "neutral",
+                "analysis": "Paint sector benefits from housing recovery and renovation demand. However, crude oil volatility affects raw material costs. RBI rate cuts could boost housing demand.",
+                "confidence": 75,
+                "sentiment": "neutral"
+            },
+            "philosopher": {
+                "score": 85,
+                "alignment_score": 85,
+                "analysis": "Asian Paints has an exceptional business moat built over 80+ years. Strong governance, family-professional management balance, and consistent capital allocation. ESG practices are improving with water recycling initiatives.",
+                "confidence": 85,
+                "sentiment": "positive",
+                "output": {
+                    "alignment": "High",
+                    "ethical_strengths": ["Strong governance", "Community initiatives"],
+                    "ethical_concerns": ["Chemical industry environmental impact"]
+                }
+            },
+            "regret": {
+                "score": 70,
+                "risk_level": "MEDIUM",
+                "analysis": "Key risks include raw material cost spikes (crude, TiO2), new competition from Grasim's Birla Opus, and rural demand slowdown. Downside of 25-30% possible in adverse scenario.",
+                "confidence": 75,
+                "sentiment": "neutral",
+                "output": {
+                    "risk_level": "Medium",
+                    "max_drawdown_estimate": "25-30%",
+                    "scenarios": ["Raw material cost spike", "Competition from Birla Opus"]
+                }
+            }
+        },
+        "market_data": {
+            "price": 2450.00,
+            "change": -0.85,
+            "volume": 1250000,
+            "high52w": 3422.00,
+            "low52w": 2379.00,
+            "pe_ratio": 65.0,
+            "market_cap": "2.35T",
+            "currency": "INR",
+            "history": [
+                {"date": "2026-01-06", "price": 2480.50},
+                {"date": "2026-01-07", "price": 2465.25},
+                {"date": "2026-01-08", "price": 2472.00},
+                {"date": "2026-01-09", "price": 2458.75},
+                {"date": "2026-01-10", "price": 2450.00}
+            ]
+        }
+    },
     "TCS.NS": {
         "orchestration_id": "demo_tcs",
         "asset_id": "TCS.NS",

@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Production Readiness
-    ALLOW_DEMO_DATA: bool = False  # Set to True only for demos or dev to allow mock data fallback
+    ALLOW_DEMO_DATA: bool = True  # Enable for demo/presentation - uses cached data when APIs fail
     
     # API Keys (Optional if using local LLM)
     GEMINI_API_KEY: Optional[str] = None
