@@ -80,12 +80,14 @@ const AnalysisResultsPage: React.FC = () => {
 
         try {
             const response = await axios.get(`http://localhost:8000/analyze/${symbol}`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 300000 // 300 seconds (5 mins) timeout for local LLM analysis
             });
             setAnalysis(response.data);
             setCurrentStep(defaultSteps.length);
         } catch (err: any) {
-            setError(err.response?.data?.detail || 'Analysis failed. Please try again.');
+            console.error('Analysis error:', err); // Log for debugging
+            setError(err.response?.data?.detail || err.message || 'Analysis failed. Please try again.');
         } finally {
             setLoading(false);
         }
