@@ -16,10 +16,12 @@ numpy
 sentence-transformers
 langchain
 langchain-openai
+anthropic
 
 # Database
 sqlalchemy>=2.0.0
 alembic
+psycopg2-binary
 
 # Authentication
 python-jose[cryptography]

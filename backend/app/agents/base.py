@@ -11,11 +11,16 @@ except ImportError:
     genai = None
 
 
+from app.core.config import settings
+from app.core.logging import get_logger
+
+logger = get_logger("agents.base")
+
 class BaseAgent:
     """
     Enhanced Base Agent with multi-provider LLM support.
     
-    LLM Provider Selection (via LLM_PROVIDER env var):
+    LLM Provider Selection (via settings):
     - 'auto': Groq first -> Ollama -> Gemini fallback
     - 'groq': Groq only (fast cloud, llama-3.3-70b)
     - 'ollama': Ollama only (local)
@@ -25,76 +30,106 @@ class BaseAgent:
     # Configurable via environment (read at call time for hot-reload)
     OLLAMA_URL = "http://localhost:11434/api/generate"
     GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+    OPENROUTER_URL = "https://openrouter.ai/api/v1"
     
     @property
     def ollama_model(self):
-        """Read OLLAMA_MODEL from env at call time for hot-reload support."""
-        return os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+        """Read OLLAMA_MODEL from settings."""
+        return settings.OLLAMA_MODEL
     
     @property
     def gemini_model_name(self):
-        """Read GEMINI_MODEL from env at call time."""
-        return os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        """Read GEMINI_MODEL from settings."""
+        return settings.GEMINI_MODEL
     
     @property
     def groq_model(self):
-        """Read GROQ_MODEL from env at call time."""
-        return os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        """Read GROQ_MODEL from settings."""
+        return settings.GROQ_MODEL
     
     @property
     def groq_api_key(self):
-        """Read GROQ_API_KEY from env at call time."""
-        return os.getenv("GROQ_API_KEY")
+        """Read GROQ_API_KEY from settings."""
+        return settings.GROQ_API_KEY
+        
+    @property
+    def openrouter_model(self):
+        """Read OPENROUTER_MODEL from settings."""
+        return settings.OPENROUTER_MODEL
+        
+    @property
+    def openrouter_api_key(self):
+        """Read OPENROUTER_API_KEY from settings."""
+        return settings.OPENROUTER_API_KEY
     
     # Token tracking (class level)
     _token_usage = {}
     
     def __init__(self, name: str):
         self.name = name
-        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.api_key = settings.GEMINI_API_KEY
         self.gemini_model = None
         self.default_confidence = 50
         
         # LLM Provider selection
-        self.llm_provider = os.getenv("LLM_PROVIDER", "auto").lower()
+        self.llm_provider = settings.LLM_PROVIDER.lower()
         self.use_groq = self.llm_provider in ("auto", "groq")
         self.use_ollama = self.llm_provider in ("auto", "ollama")
         self.use_gemini = self.llm_provider in ("auto", "gemini")
+        self.use_openrouter = self.llm_provider in ("auto", "openrouter")
         
         # Track token usage for this agent
         if self.name not in BaseAgent._token_usage:
             BaseAgent._token_usage[self.name] = {"input": 0, "output": 0, "calls": 0}
+    
+    def get_guardrail_system_prompt(self, base_prompt: str) -> str:
+        """
+        Add anti-hallucination guardrails to any system prompt.
+        All agents should use this method to wrap their system prompts.
+        """
+        guardrails = """
+
+CRITICAL GUARDRAILS - YOU MUST FOLLOW THESE:
+1. ONLY use data explicitly provided in the context. Do NOT invent numbers, facts, or metrics.
+2. If data is missing or insufficient, say "Insufficient data for [X]" instead of guessing.
+3. NEVER mention or analyze any company/stock other than the one specified in the context.
+4. If unsure about any assessment, reduce your confidence score accordingly (below 50 for major uncertainty).
+5. CITE specific numbers from the provided data in your reasoning to prove you're using real data.
+6. If the data looks suspicious, anomalous, or inconsistent, FLAG it rather than using it blindly.
+7. Do NOT hallucinate historical events, news, or market movements not present in the data.
+"""
+        return f"{base_prompt}\n{guardrails}"
         
         # Check Groq availability
         if self.use_groq and self.groq_api_key:
-            print(f"[{self.name}] ✅ Groq Available ({self.groq_model})")
+            logger.info(f"[{self.name}] [OK] Groq Available ({self.groq_model})")
         elif self.llm_provider == "groq":
-            print(f"[{self.name}] ❌ Groq requires GROQ_API_KEY in .env!")
+            logger.error(f"[{self.name}] [ERROR] Groq requires GROQ_API_KEY in .env!")
             self.use_groq = False
-        
+
         # Check Ollama availability
         if self.use_ollama:
             try:
                 resp = requests.get("http://localhost:11434/api/tags", timeout=2)
                 if resp.status_code == 200:
                     if self.llm_provider == "ollama":
-                        print(f"[{self.name}] ✅ Ollama Available ({self.ollama_model})")
+                        logger.info(f"[{self.name}] [OK] Ollama Available ({self.ollama_model})")
                 else:
                     self.use_ollama = False
             except:
                 self.use_ollama = False
                 if self.llm_provider == "ollama":
-                    print(f"[{self.name}] ❌ Ollama required but not running!")
-        
+                    logger.error(f"[{self.name}] [ERROR] Ollama required but not running!")
+
         # Initialize Gemini
         if self.use_gemini and self.api_key and genai:
             try:
                 genai.configure(api_key=self.api_key)
                 self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
                 if self.llm_provider == "gemini":
-                    print(f"[{self.name}] ✅ Gemini ({self.gemini_model_name}) Initialized.")
+                    logger.info(f"[{self.name}] [OK] Gemini ({self.gemini_model_name}) Initialized.")
             except Exception as e:
-                print(f"[{self.name}] ❌ Failed to init Gemini: {e}")
+                logger.error(f"[{self.name}] [ERROR] Failed to init Gemini: {e}")
 
     def _estimate_tokens(self, text: str) -> int:
         """Rough token estimation (~4 chars per token for English)."""
@@ -134,22 +169,22 @@ class BaseAgent:
                     if retry_after:
                         wait_time = min(int(retry_after), 30)  # Cap at 30s
                     
-                    print(f"[{self.name}] ⏳ Groq rate limit. Waiting {wait_time}s (attempt {attempt+1}/{max_retries})...")
+                    logger.warning(f"[{self.name}] ⏳ Groq rate limit. Waiting {wait_time}s (attempt {attempt+1}/{max_retries})...")
                     time.sleep(wait_time)
                     continue
                     
                 else:
-                    print(f"[{self.name}] ⚠️ Groq error: {response.status_code} - {response.text[:100]}")
+                    logger.error(f"[{self.name}] [WARN] Groq error: {response.status_code} - {response.text[:100]}")
                     return None
                     
             except Exception as e:
-                print(f"[{self.name}] ⚠️ Groq error: {e}")
+                logger.error(f"[{self.name}] [WARN] Groq error: {e}")
                 if attempt < max_retries - 1:
                     time.sleep(2)
                     continue
                 return None
         
-        print(f"[{self.name}] ❌ Groq rate limit exceeded after {max_retries} retries")
+        logger.error(f"[{self.name}] [ERROR] Groq rate limit exceeded after {max_retries} retries")
         return None
 
     def _call_ollama(self, prompt: str) -> Optional[str]:
@@ -167,7 +202,7 @@ class BaseAgent:
             if response.status_code == 200:
                 return response.json().get("response", "")
         except Exception as e:
-            print(f"[{self.name}] ⚠️ Ollama error: {e}")
+            logger.error(f"[{self.name}] [WARN] Ollama error: {e}")
         return None
 
     def _call_gemini(self, prompt: str, max_retries: int = 3) -> Optional[str]:
@@ -186,14 +221,37 @@ class BaseAgent:
                 error_str = str(e)
                 if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
                     wait_time = (2 ** attempt) * 2
-                    print(f"[{self.name}] ⚠️ Gemini Rate Limit. Retry {attempt+1}/{max_retries} in {wait_time}s...")
+                    logger.warning(f"[{self.name}] [WARN] Gemini Rate Limit. Retry {attempt+1}/{max_retries} in {wait_time}s...")
                     time.sleep(wait_time)
                 else:
-                    print(f"[{self.name}] ⚠️ Gemini Error: {e}")
+                    logger.error(f"[{self.name}] [WARN] Gemini Error: {e}")
                     # Don't retry on non-transient errors usually, but loop continues
                     if attempt == max_retries - 1:
                         return None
         return None
+
+    def _call_openrouter(self, prompt: str, max_retries: int = 3) -> Optional[str]:
+        """Call OpenRouter API."""
+        if not self.openrouter_api_key:
+            return None
+            
+        try:
+            from openai import OpenAI
+            client = OpenAI(
+                base_url=self.OPENROUTER_URL,
+                api_key=self.openrouter_api_key,
+            )
+            
+            response = client.chat.completions.create(
+                model=self.openrouter_model,
+                messages=[{"role": "user", "content": prompt}],
+                # extra_body={"reasoning": {"enabled": True}} # Enable if model supports it, configurable?
+            )
+            
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"[{self.name}] [ERROR] OpenRouter Error: {e}")
+            return None
 
     def call_llm(
         self, 
@@ -204,7 +262,7 @@ class BaseAgent:
         max_retries: int = 3
     ) -> str:
         """
-        Calls LLM with fallback strategy: Groq -> Ollama -> Gemini -> Rule-based Fallback.
+        Calls LLM with fallback strategy: OpenRouter -> Groq -> Ollama -> Gemini -> Rule-based Fallback.
         """
         full_prompt = f"System: {system_prompt}\n\nUser: {prompt}"
         input_tokens = self._estimate_tokens(full_prompt)
@@ -212,35 +270,45 @@ class BaseAgent:
         result = None
         provider_used = None
         
+        # 0. Try OpenRouter (if enabled)
+        if self.use_openrouter and self.openrouter_api_key:
+            logger.info(f"[{self.name}] 🦄 Calling OpenRouter ({self.openrouter_model})...")
+            result = self._call_openrouter(full_prompt)
+            if result:
+                provider_used = "openrouter"
+                logger.info(f"[{self.name}] [OK] OpenRouter Response")
+            else:
+                 logger.warning(f"[{self.name}] [WARN] OpenRouter failed/empty.")
+                 
         # 1. Try Groq first (fast cloud)
-        if self.use_groq and self.groq_api_key:
-            print(f"[{self.name}] ⚡ Calling Groq ({self.groq_model})...")
+        if not result and self.use_groq and self.groq_api_key:
+            logger.info(f"[{self.name}] [CALL] Calling Groq ({self.groq_model})...")
             result = self._call_groq(full_prompt)
             if result:
                 provider_used = "groq"
-                print(f"[{self.name}] ✅ Groq Response")
+                logger.info(f"[{self.name}] [OK] Groq Response")
             else:
-                print(f"[{self.name}] ⚠️ Groq failed/empty.")
+                logger.warning(f"[{self.name}] [WARN] Groq failed/empty.")
         
         # 2. Try Ollama (if configured and no result yet)
         if not result and self.use_ollama:
-            print(f"[{self.name}] 🦙 Calling Ollama ({self.ollama_model})...")
+            logger.info(f"[{self.name}] 🦙 Calling Ollama ({self.ollama_model})...")
             result = self._call_ollama(full_prompt)
             if result:
                 provider_used = "ollama"
-                print(f"[{self.name}] ✅ Ollama Response")
+                logger.info(f"[{self.name}] [OK] Ollama Response")
             else:
-                print(f"[{self.name}] ⚠️ Ollama failed/empty.")
+                logger.warning(f"[{self.name}] [WARN] Ollama failed/empty.")
 
         # 3. Try Gemini (if enabled and no result yet)
         if not result and self.use_gemini:
-            print(f"[{self.name}] 🚀 Calling Gemini ({self.gemini_model_name})...")
+            logger.info(f"[{self.name}] 🚀 Calling Gemini ({self.gemini_model_name})...")
             result = self._call_gemini(full_prompt, max_retries)
             if result:
                 provider_used = "gemini"
-                print(f"[{self.name}] ✅ Gemini Response")
+                logger.info(f"[{self.name}] [OK] Gemini Response")
             else:
-                print(f"[{self.name}] ❌ Gemini Failed.")
+                logger.error(f"[{self.name}] [ERROR] Gemini Failed.")
 
         # 3. Track Usage & Return
         if result:
@@ -252,7 +320,7 @@ class BaseAgent:
         
         # 4. Final Fallback
         if fallback_func:
-            print(f"[{self.name}] 🔄 Using rule-based fallback")
+            logger.warning(f"[{self.name}] [RETRY] Using rule-based fallback")
             return fallback_func(fallback_args)
             
         # 5. No recourse

@@ -45,11 +45,11 @@ const PriceHistoryChart: React.FC<PriceHistoryChartProps> = ({ data, currencySym
                     <AreaChart data={chartData}>
                         <defs>
                             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4} />
+                                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
                         <XAxis
                             dataKey="date"
                             tickFormatter={(str) => {
@@ -74,12 +74,13 @@ const PriceHistoryChart: React.FC<PriceHistoryChartProps> = ({ data, currencySym
                         />
                         <Tooltip
                             contentStyle={{
-                                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                                backgroundColor: 'rgba(15, 16, 26, 0.9)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '8px',
-                                color: '#fff'
+                                borderRadius: '12px',
+                                color: '#fff',
+                                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)'
                             }}
-                            itemStyle={{ color: '#60a5fa' }}
+                            itemStyle={{ color: '#a78bfa' }}
                             labelStyle={{ color: '#94a3b8' }}
                             formatter={(value: any) => [`${currencySymbol}${Number(value).toFixed(2)}`, 'Price']}
                             labelFormatter={(label) => {
@@ -91,8 +92,8 @@ const PriceHistoryChart: React.FC<PriceHistoryChartProps> = ({ data, currencySym
                         <Area
                             type="monotone"
                             dataKey="price"
-                            stroke="#3b82f6"
-                            strokeWidth={2}
+                            stroke="#8b5cf6"
+                            strokeWidth={3}
                             fillOpacity={1}
                             fill="url(#colorPrice)"
                         />

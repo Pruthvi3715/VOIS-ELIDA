@@ -161,19 +161,19 @@ class MatchScoreBreakdown(BaseModel):
     """Breakdown of how Match Score was calculated."""
     
     fundamental_score: float = Field(description="Score from Quant Agent (0-100)")
-    fundamental_weight: float = 0.30
+    fundamental_weight: float = 0.35
     
     macro_score: float = Field(description="Score from Macro alignment (0-100)")
-    macro_weight: float = 0.20
+    macro_weight: float = 0.10
     
     philosophy_score: float = Field(description="Score from Philosopher Agent (0-100)")
-    philosophy_weight: float = 0.15
+    philosophy_weight: float = 0.10
     
     risk_score: float = Field(description="Inverted risk score (0-100)")
     risk_weight: float = 0.20
     
     dna_match_score: float = Field(description="How well it matches Investor DNA (0-100)")
-    dna_weight: float = 0.15
+    dna_weight: float = 0.25
     
     @property
     def total_score(self) -> float:

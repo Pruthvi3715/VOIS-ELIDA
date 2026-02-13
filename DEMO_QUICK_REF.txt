@@ -1,0 +1,110 @@
+╔══════════════════════════════════════════════════════════════╗
+║                  ELIDA - QUICK DEMO GUIDE                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────┐
+│ 1. START THE APPLICATION                                     │
+└──────────────────────────────────────────────────────────────┘
+
+Terminal 1 - Backend:
+  cd C:\Users\pshin\CODEE\VOIS\backend
+  python -m uvicorn app.main:app --reload
+
+Terminal 2 - Frontend:
+  cd C:\Users\pshin\CODEE\VOIS\frontend
+  npm run dev
+
+Open Browser:
+  http://localhost:5173
+
+┌──────────────────────────────────────────────────────────────┐
+│ 2. DEMO LOGIN                                                │
+└──────────────────────────────────────────────────────────────┘
+
+Method 1 (EASIEST):
+  → Click "Try Demo Account" button
+
+Method 2 (Manual):
+  Username: demo
+  Password: demo123
+
+┌──────────────────────────────────────────────────────────────┐
+│ 3. TEST STOCKS                                               │
+└──────────────────────────────────────────────────────────────┘
+
+Recommended Demo Stocks:
+  ✓ AAPL         → Match Score ~56, Hold
+  ✓ RELIANCE.NS  → Match Score ~51, Hold
+  ✓ TSLA         → Match Score ~25, Avoid
+  ✓ SUZLON.NS    → Match Score ~62, Buy
+
+┌──────────────────────────────────────────────────────────────┐
+│ 4. TROUBLESHOOTING                                           │
+└──────────────────────────────────────────────────────────────┘
+
+"Analysis failed":
+  → Wait 30 seconds (timeout was too short)
+  → Refresh and try again
+
+Login fails:
+  cd backend
+  python fix_demo_password.py
+
+Backend not responding:
+  → Check http://localhost:8000/health
+  → Should return: {"status":"ok"}
+
+┌──────────────────────────────────────────────────────────────┐
+│ 5. PRESENTATION TIPS                                         │
+└──────────────────────────────────────────────────────────────┘
+
+Opening Line:
+  "ELIDA uses 5 AI agents to analyze stocks from
+   different perspectives - Quantitative, Macro,
+   Philosophical, Regret, and Coach"
+
+Show Off:
+  1. Click "Try Demo Account" (instant login)
+  2. Search "AAPL"
+  3. Show loading animation (20-30 seconds)
+  4. Point out Match Score (56/100)
+  5. Explain each agent's verdict
+  6. Show personalized recommendation
+
+Key Features:
+  ✓ Multi-agent AI system (Groq LLM)
+  ✓ Real-time financial data (Yahoo Finance)
+  ✓ Personalized match scoring (Investor DNA)
+  ✓ RAG-based knowledge base (ChromaDB)
+  ✓ Beautiful UI with loading animations
+
+┌──────────────────────────────────────────────────────────────┐
+│ 6. EMERGENCY FIXES                                           │
+└──────────────────────────────────────────────────────────────┘
+
+If demo breaks during presentation:
+
+1. Restart backend:
+   Ctrl+C in terminal, then:
+   python -m uvicorn app.main:app --reload
+
+2. Clear browser cache:
+   Ctrl+Shift+Delete → Clear cache
+
+3. Re-create demo user:
+   python setup_demo_account.py
+
+4. Show prepared screenshots as backup
+
+═══════════════════════════════════════════════════════════════
+
+Files Created for You:
+  - START_BACKEND.bat         → Easy backend startup
+  - START_FRONTEND.bat        → Easy frontend startup
+  - DEMO_ACCOUNT.md          → Full demo guide
+  - BUG_FIX_SUMMARY.md       → What was fixed today
+  - QUICK_START.md           → Troubleshooting guide
+
+Good luck with your hackathon! 🚀
+
+═══════════════════════════════════════════════════════════════

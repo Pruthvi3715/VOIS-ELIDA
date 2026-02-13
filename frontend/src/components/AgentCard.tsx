@@ -34,7 +34,7 @@ const agentColors: Record<string, string> = {
 };
 
 const ScoreGauge: React.FC<{ score: number; id: string }> = ({ score, id }) => {
-    const circumference = 2 * Math.PI * 40;
+    const circumference = 2 * Math.PI * 34;
     const strokeDashoffset = circumference - (score / 100) * circumference;
     const uniqueId = `gauge-${id.replace(/\s+/g, '-')}`;
 
@@ -98,24 +98,14 @@ const AgentCard: React.FC<AgentCardProps> = ({
     const Icon = agentIcons[name] || Brain;
     const colorClass = agentColors[name] || 'from-indigo-500 to-violet-500';
 
-    // Text Cleaning Logic - strips JSON and formats headers
+    // Text Cleaning Logic - formats text for display
     const cleanAnalysis = (text: string): string[] => {
-        if (!text) return [];
+        if (!text || text.trim().length === 0) return [];
 
         let cleaned = text;
 
         // Remove markdown code blocks (json, plain, etc.)
         cleaned = cleaned.replace(/```(?:json|javascript|python)?[\s\S]*?```/gi, '');
-
-        // Remove inline JSON objects like { "score": 65, ... }
-        // This pattern matches balanced braces with JSON-like content
-        cleaned = cleaned.replace(/\{[\s\S]*?"(?:score|confidence|metrics|reasoning|name|probability)"[\s\S]*?\}/g, '');
-
-        // Remove any remaining { } blocks that look like JSON (contain quotes and colons)
-        cleaned = cleaned.replace(/\{[^}]*"[^"]*"\s*:[^}]*\}/g, '');
-
-        // Remove orphaned JSON arrays like ["P/E", "ROE", ...]
-        cleaned = cleaned.replace(/\[[\s\S]*?"[^"]*"[\s\S]*?\]/g, '');
 
         // Clean up markdown headers to just text (remove ** markers)
         cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
@@ -123,21 +113,24 @@ const AgentCard: React.FC<AgentCardProps> = ({
         // Remove "Paragraph X -" headers
         cleaned = cleaned.replace(/Paragraph \d+\s*[-–—]?\s*/gi, '');
 
-        // Remove lines that are just punctuation or very short
-        cleaned = cleaned.replace(/^[\s\-–—_*#=]+$/gm, '');
-
         // Clean up excessive whitespace
         cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
         cleaned = cleaned.trim();
+
+        // If the entire text is short enough, return it as a single paragraph
+        if (cleaned.length < 500 && !cleaned.includes('\n\n')) {
+            return cleaned.length > 10 ? [cleaned] : [];
+        }
 
         // Split by double newlines and filter
         return cleaned.split(/\n\n+/)
             .map(p => p.trim())
             .filter(p => {
-                // Filter out short fragments and JSON-like strings
-                if (p.length < 25) return false;
-                if (p.startsWith('{') || p.startsWith('[')) return false;
-                if (p.includes('": ') && p.includes(',')) return false; // JSON-like
+                // Filter out very short fragments
+                if (p.length < 10) return false;
+                // Filter out pure JSON-like strings that start with { or [
+                if (p.startsWith('{') && p.endsWith('}')) return false;
+                if (p.startsWith('[') && p.endsWith(']')) return false;
                 return true;
             });
     };

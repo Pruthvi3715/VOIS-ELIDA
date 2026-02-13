@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft, User, Target, Clock, Shield, Heart, Zap, TrendingUp, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,6 +19,7 @@ const activityData = [
 function ProfilePage() {
     const navigate = useNavigate();
     const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState({
         user_id: getUserId(),
         risk_tolerance: 'Medium',
@@ -31,6 +32,59 @@ function ProfilePage() {
         }
     });
     const [newRule, setNewRule] = useState('');
+
+    // Load saved profile from backend on mount
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/v1/profile/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const savedProfile = await response.json();
+                    console.log('Loaded profile:', savedProfile);
+
+                    // Map backend fields to frontend state
+                    setProfile(prev => ({
+                        ...prev,
+                        risk_tolerance: mapRiskTolerance(savedProfile.risk_tolerance),
+                        investment_horizon: savedProfile.investment_horizon || '3-5 years',
+                        ethical_filters: savedProfile.ethical_filters || [],
+                        custom_rules: savedProfile.custom_rules || [],
+                        preferences: {
+                            sectors: savedProfile.sectors || [],
+                            max_allocation: 10
+                        }
+                    }));
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+            setLoading(false);
+        };
+
+        loadProfile();
+    }, []);
+
+    // Map backend risk tolerance to frontend display value
+    const mapRiskTolerance = (backendValue) => {
+        const map = {
+            'conservative': 'Conservative',
+            'moderate': 'Medium',
+            'medium': 'Medium',
+            'aggressive': 'Aggressive'
+        };
+        return map[backendValue?.toLowerCase()] || 'Medium';
+    };
 
     const riskLevels = [
         { value: 'Conservative', icon: Shield, color: 'text-green-400', desc: 'Preserve capital, minimal volatility' },
@@ -52,10 +106,24 @@ function ProfilePage() {
     const handleSave = async () => {
         setSaving(true);
         try {
+            const token = localStorage.getItem('token');
+
+            // Map frontend fields to backend schema
+            const profileData = {
+                risk_tolerance: profile.risk_tolerance.toLowerCase(), // "Medium" -> "moderate"
+                investment_horizon: profile.investment_horizon,
+                ethical_filters: profile.ethical_filters,
+                custom_rules: profile.custom_rules,
+                sectors: profile.preferences?.sectors || []
+            };
+
             const response = await fetch(`${API_BASE_URL}/api/v1/profile`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(profile)
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                },
+                body: JSON.stringify(profileData)
             });
 
             if (response.ok) {
@@ -64,8 +132,12 @@ function ProfilePage() {
                     alert('✅ Investor DNA saved! Your analysis will now be personalized.');
                     navigate('/');
                 }, 500);
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                alert(`Error: ${errorData.detail || 'Failed to save profile'}`);
             }
         } catch (error) {
+            console.error('Save error:', error);
             alert('Error saving profile. Please try again.');
         }
         setSaving(false);
@@ -166,8 +238,8 @@ function ProfilePage() {
                                         key={value}
                                         onClick={() => setProfile({ ...profile, risk_tolerance: value })}
                                         className={`relative group p-4 rounded-2xl border transition-all duration-300 text-left h-full ${profile.risk_tolerance === value
-                                                ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]'
-                                                : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800'
+                                            ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]'
+                                            : 'bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:bg-gray-800'
                                             }`}
                                     >
                                         <div className={`p-3 rounded-xl bg-gray-900/50 w-fit mb-3 ${profile.risk_tolerance === value ? 'text-blue-400' : 'text-gray-400'}`}>
@@ -201,8 +273,8 @@ function ProfilePage() {
                                         key={value}
                                         onClick={() => setProfile({ ...profile, investment_horizon: value })}
                                         className={`p-4 rounded-xl border transition-all text-center flex flex-col items-center gap-3 ${profile.investment_horizon === value
-                                                ? 'bg-purple-600/20 border-purple-500 text-white'
-                                                : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:bg-gray-800'
+                                            ? 'bg-purple-600/20 border-purple-500 text-white'
+                                            : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:bg-gray-800'
                                             }`}
                                     >
                                         <Icon className={`w-6 h-6 ${profile.investment_horizon === value ? 'text-purple-400' : ''}`} />
@@ -230,8 +302,8 @@ function ProfilePage() {
                                         key={filter}
                                         onClick={() => toggleEthicalFilter(filter)}
                                         className={`px-4 py-2 rounded-full border text-sm font-medium transition-all ${profile.ethical_filters.includes(filter)
-                                                ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-[0_0_10px_rgba(236,72,153,0.2)]'
-                                                : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600'
+                                            ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-[0_0_10px_rgba(236,72,153,0.2)]'
+                                            : 'bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600'
                                             }`}
                                     >
                                         {filter}
@@ -340,8 +412,8 @@ function ProfilePage() {
                                     onClick={handleSave}
                                     disabled={saving}
                                     className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${saving
-                                            ? 'bg-gray-700 cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-blue-500/25'
+                                        ? 'bg-gray-700 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-blue-500/25'
                                         }`}
                                 >
                                     {saving ? (

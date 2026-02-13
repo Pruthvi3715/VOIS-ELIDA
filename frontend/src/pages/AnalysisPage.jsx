@@ -17,46 +17,117 @@ function AnalysisPage() {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
-    // If no symbol provided, show search interface
+    // Popular stocks for quick analysis
+    const popularStocks = [
+        { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology' },
+        { symbol: 'MSFT', name: 'Microsoft', sector: 'Technology' },
+        { symbol: 'GOOGL', name: 'Alphabet', sector: 'Technology' },
+        { symbol: 'TSLA', name: 'Tesla', sector: 'Automotive' },
+        { symbol: 'NVDA', name: 'NVIDIA', sector: 'Semiconductors' },
+        { symbol: 'RELIANCE.NS', name: 'Reliance Industries', sector: 'Conglomerate' },
+        { symbol: 'TCS.NS', name: 'Tata Consultancy', sector: 'IT Services' },
+        { symbol: 'INFY.NS', name: 'Infosys', sector: 'IT Services' },
+    ];
+
+    // If no symbol provided, show enhanced search interface
     if (!symbol) {
         return (
-            <div className="space-y-6">
-                <div className="glass-card rounded-xl border border-glass-border p-8 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="space-y-8 animate-fade-in">
+                {/* Hero Section */}
+                <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center p-4 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent/20 border border-primary-500/30 mb-6">
+                        <Sparkles className="w-10 h-10 text-amber-400" />
+                    </div>
+                    <h1 className="text-4xl font-bold text-white mb-3">
+                        AI-Powered Stock Analysis
+                    </h1>
+                    <p className="text-secondary text-lg max-w-2xl mx-auto">
+                        Get comprehensive investment insights from our multi-agent AI system.
+                        Analyze any stock with quantitative, macro, philosophical, and risk perspectives.
+                    </p>
+                </div>
+
+                {/* Search Card */}
+                <div className="glass-card p-8 max-w-3xl mx-auto relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-accent/5" />
 
                     <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 rounded-lg bg-surface-light border border-glass-border">
-                                <Sparkles className="w-5 h-5 text-amber-400" />
-                            </div>
-                            <h2 className="text-xl font-bold text-white">Investment Analysis</h2>
-                        </div>
-
-                        <p className="text-secondary text-sm mb-6 max-w-2xl">
-                            Our multi-agent AI system will analyze your request from multiple perspectives
-                        </p>
-
-                        <div className="flex gap-3 max-w-3xl">
+                        <div className="flex gap-3">
                             <div className="flex-1 relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                                 <input
                                     type="text"
                                     value={searchTicker}
                                     onChange={(e) => setSearchTicker(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && searchTicker.trim() && navigate(`/analysis/${searchTicker.trim().toUpperCase()}`)}
-                                    placeholder="Enter stock symbol or company name"
-                                    className="w-full pl-12 pr-4 py-4 bg-surface-light/50 border border-glass-border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/50 transition-all font-medium"
+                                    placeholder="Enter stock symbol (e.g., AAPL, TSLA, RELIANCE.NS)"
+                                    className="input-glass pl-12 text-lg py-4"
                                 />
                             </div>
                             <button
                                 onClick={() => searchTicker.trim() && navigate(`/analysis/${searchTicker.trim().toUpperCase()}`)}
                                 disabled={!searchTicker.trim()}
-                                className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary-600 to-accent-dark text-white rounded-xl font-bold hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                className="btn-primary px-8 py-4 text-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <Zap className="w-5 h-5 fill-current" />
                                 Analyze
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                {/* Popular Stocks Grid */}
+                <div className="glass-card p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <span className="text-2xl">🔥</span>
+                        Popular Stocks
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {popularStocks.map((stock) => (
+                            <button
+                                key={stock.symbol}
+                                onClick={() => navigate(`/analysis/${stock.symbol}`)}
+                                className="p-4 rounded-xl bg-surface-light border border-white/10 hover:border-primary-500/50 hover:bg-white/5 transition-all text-left group"
+                            >
+                                <p className="font-bold text-white group-hover:text-primary-400 transition-colors">
+                                    {stock.symbol}
+                                </p>
+                                <p className="text-sm text-secondary truncate">{stock.name}</p>
+                                <p className="text-xs text-gray-500 mt-1">{stock.sector}</p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Features Grid */}
+                <div className="grid md:grid-cols-4 gap-4">
+                    <div className="glass-card p-5 text-center">
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span className="text-2xl">📊</span>
+                        </div>
+                        <h4 className="font-semibold text-white mb-1">Quant Analysis</h4>
+                        <p className="text-sm text-secondary">Financial metrics & valuation</p>
+                    </div>
+                    <div className="glass-card p-5 text-center">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span className="text-2xl">🌍</span>
+                        </div>
+                        <h4 className="font-semibold text-white mb-1">Macro Insights</h4>
+                        <p className="text-sm text-secondary">Market conditions & trends</p>
+                    </div>
+                    <div className="glass-card p-5 text-center">
+                        <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span className="text-2xl">🧠</span>
+                        </div>
+                        <h4 className="font-semibold text-white mb-1">Philosophy</h4>
+                        <p className="text-sm text-secondary">Long-term investment thesis</p>
+                    </div>
+                    <div className="glass-card p-5 text-center">
+                        <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center mx-auto mb-3">
+                            <span className="text-2xl">⚠️</span>
+                        </div>
+                        <h4 className="font-semibold text-white mb-1">Risk Analysis</h4>
+                        <p className="text-sm text-secondary">Downside scenarios & regret</p>
                     </div>
                 </div>
             </div>

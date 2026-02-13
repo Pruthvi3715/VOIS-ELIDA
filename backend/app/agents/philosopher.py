@@ -51,7 +51,7 @@ Consider: Business moat (10+ year durability), Management integrity, ESG factors
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a Philosopher analyzing investments for ethical alignment. Output valid JSON. Be thoughtful and balanced. CRITICAL: Only analyze the company specified in the context. Never mention or analyze any other company.",
+            system_prompt=self.get_guardrail_system_prompt("You are a Philosopher analyzing investments for ethical alignment. Output valid JSON. Be thoughtful and balanced. Only analyze the company specified in the context."),
             fallback_func=self._sector_based_analysis,
             fallback_args=context
         )
@@ -62,10 +62,19 @@ Consider: Business moat (10+ year durability), Management integrity, ESG factors
         # Determine if fallback was used
         fallback_used = "[Fallback]" in response or "[Sector-Based]" in response
         
+        # Derive numeric score from alignment
+        alignment_scores = {"High": 80, "Medium": 55, "Low": 30}
+        score = alignment_scores.get(parsed["alignment"], 55)
+        # Adjust score based on confidence
+        score = int(score * (0.7 + 0.3 * parsed["confidence"] / 100))
+        
         return self.format_output(
             output_data={
+                "score": score,
                 "alignment": parsed["alignment"],
                 "factors_analyzed": parsed.get("factors_analyzed", []),
+                "strengths": parsed.get("ethical_strengths", []),
+                "weaknesses": parsed.get("ethical_concerns", []),
                 "ethical_strengths": parsed.get("ethical_strengths", []),
                 "ethical_concerns": parsed.get("ethical_concerns", []),
                 "long_term_outlook": parsed.get("long_term_outlook", "Unknown")

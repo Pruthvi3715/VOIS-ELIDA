@@ -50,19 +50,24 @@ def decode_token(token: str) -> Optional[dict]:
 def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """
     Extract user_id from JWT token.
-    Returns 'default' if no valid token provided (for backward compatibility).
+    Returns '1' (default user) if no valid token provided (for backward compatibility).
     """
     if not credentials:
-        return "default"
+        print("DEBUG: No credentials provided, using default user 1")
+        return "1"
     
     token = credentials.credentials
+    print(f"DEBUG: Auth Header: Bearer {token[:20]}...")
     payload = decode_token(token)
     
     if not payload:
-        return "default"
+        print("DEBUG: Token decode failed, using default user 1")
+        return "1"
     
     user_id = payload.get("sub")
     if not user_id:
-        return "default"
+        print("DEBUG: No sub in token, using default user 1")
+        return "1"
     
+    print(f"DEBUG: Authenticated user {user_id}")
     return user_id

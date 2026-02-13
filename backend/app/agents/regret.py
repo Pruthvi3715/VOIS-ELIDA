@@ -67,7 +67,7 @@ Focus on: Company-specific risks, Sector risks, Macro risks. Quantify impact whe
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a Risk Analyst focused on downside scenarios. Output valid JSON. Be thorough but realistic. CRITICAL: Only analyze the company specified in the context. Never mention or analyze any other company.",
+            system_prompt=self.get_guardrail_system_prompt("You are a Risk Analyst focused on downside scenarios. Output valid JSON. Be thorough but realistic. Base drawdown estimates on actual volatility data provided."),
             fallback_func=self._sector_risk_analysis,
             fallback_args=context
         )
@@ -78,11 +78,20 @@ Focus on: Company-specific risks, Sector risks, Macro risks. Quantify impact whe
         # Determine if fallback was used
         fallback_used = "[Fallback]" in response or "[Sector-Risk]" in response
         
+        # Derive numeric score from risk level (inverted: low risk = high score)
+        risk_scores = {"Low": 80, "Medium": 55, "High": 30}
+        score = risk_scores.get(parsed["risk_level"], 55)
+        # Adjust score based on confidence
+        score = int(score * (0.7 + 0.3 * parsed["confidence"] / 100))
+        
         return self.format_output(
             output_data={
+                "score": score,
                 "risk_level": parsed["risk_level"],
                 "scenarios": parsed.get("scenarios", []),
                 "max_drawdown_estimate": parsed.get("max_drawdown_estimate", "Unknown"),
+                "strengths": parsed.get("risk_mitigants", []),
+                "weaknesses": parsed.get("vulnerabilities", []) + [str(s) for s in parsed.get("scenarios", [])[:2]],
                 "risk_mitigants": parsed.get("risk_mitigants", []),
                 "vulnerabilities": parsed.get("vulnerabilities", [])
             },

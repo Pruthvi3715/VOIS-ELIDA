@@ -15,10 +15,15 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     # Use Ollama for local LLM (no API key needed)
-    LLM_PROVIDER: Literal["auto", "ollama", "gemini", "groq", "claude"] = Field(default="ollama", validation_alias="OVERRIDE_LLM_PROVIDER")
+    LLM_PROVIDER: Literal["auto", "ollama", "gemini", "groq", "claude", "openrouter"] = "ollama"
     GEMINI_MODEL: str = "gemini-2.0-flash"
     OLLAMA_MODEL: str = "qwen2.5:7b"
     OLLAMA_URL: str = "http://localhost:11434/api/generate"
+    
+    # OpenRouter
+    OPENROUTER_API_KEY: Optional[str] = None
+    OPENROUTER_MODEL: str = "openrouter/pony-alpha"
+    
     GROQ_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
     CLAUDE_MODEL: str = "claude-3-sonnet-20240229"

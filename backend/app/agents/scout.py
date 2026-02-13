@@ -3,6 +3,7 @@ from typing import Dict, Any, List
 import pandas as pd
 import numpy as np
 from app.services.cache_service import cache_data
+from app.core.config import settings
 import datetime
 
 
@@ -32,12 +33,17 @@ class ScoutAgent:
     @staticmethod
     @cache_data(expire_seconds=3600)
     def _fetch_cached_data(asset_id: str) -> Dict[str, Any]:
-        print(f"[Scout Agent] 🔍 Collecting data for {asset_id}...")
+        print(f"[Scout Agent] [FIND] Collecting data for {asset_id}...")
+        
+        # DEMO MODE - Safe mock company for presentations
+        if asset_id.upper() in ("DEMO.NS", "DEMO", "ELIDA.NS"):
+            print(f"[Scout Agent] [TARGET] Using DEMO company data (safe for presentation)")
+            return ScoutAgent._get_demo_company_data()
         
         # Check if this is a cryptocurrency (NEW)
         from app.services.coingecko_service import coingecko_service
         if coingecko_service.is_crypto(asset_id) or asset_id.startswith("CRYPTO:"):
-            print(f"[Scout Agent] 🪙 Detected cryptocurrency: {asset_id}")
+            print(f"[Scout Agent] [CRYPTO] Detected cryptocurrency: {asset_id}")
             crypto_data = coingecko_service.get_crypto_data(asset_id)
             
             if "error" not in crypto_data:
@@ -72,10 +78,10 @@ class ScoutAgent:
                     "trend_signal": ScoutAgent._calculate_trend_from_history(history) if history else "Unknown"
                 }
                 
-                macro = ScoutAgent._get_macro_data_static()
+                macro = ScoutAgent._get_macro_data_static(asset_id)
                 news = []  # Crypto news would need different source
                 
-                print(f"[Scout Agent] ✅ Crypto collection complete: {crypto_data.get('company_name')}")
+                print(f"[Scout Agent] [OK] Crypto collection complete: {crypto_data.get('company_name')}")
                 return {
                     "financials": financials,
                     "technicals": technicals,
@@ -85,12 +91,20 @@ class ScoutAgent:
                     "sanity_alerts": []
                 }
             else:
-                print(f"[Scout Agent] ⚠️ Crypto fetch failed: {crypto_data.get('error')}")
+                print(f"[Scout Agent] [WARN] Crypto fetch failed: {crypto_data.get('error')}")
         
+        # Regular stock data flow
+
+        
+        # Ticker Normalization for known issues (e.g. Asian Paints)
+        if asset_id == "ASIANPAINTS.NS":
+            print(f"[Scout Agent] [FIX] Normalizing ticker: ASIANPAINTS.NS -> ASIANPAINT.NS")
+            asset_id = "ASIANPAINT.NS"
+
         # Regular stock data flow
         financials = ScoutAgent._get_financials_deep_static(asset_id)
         technicals = ScoutAgent._get_technicals_static(asset_id)
-        macro = ScoutAgent._get_macro_data_static()
+        macro = ScoutAgent._get_macro_data_static(asset_id)
         news = ScoutAgent._get_news_static(asset_id)
         
         # Enrich with Screener.in data for Indian stocks (NEW)
@@ -100,28 +114,37 @@ class ScoutAgent:
                 screener_data = screener_service.get_data(asset_id)
                 
                 if "error" not in screener_data:
-                    print(f"[Scout Agent] 📊 Screener.in data enrichment successful")
-                    # Merge Screener data - prioritize Screener for these fields
-                    if screener_data.get("roce"):
-                        financials["roce"] = screener_data["roce"]
-                    if screener_data.get("promoter_holding"):
-                        financials["promoter_holding"] = screener_data["promoter_holding"]
-                    if screener_data.get("fii_holding"):
-                        financials["fii_holding"] = screener_data["fii_holding"]
-                    if screener_data.get("dii_holding"):
-                        financials["dii_holding"] = screener_data["dii_holding"]
-                    if screener_data.get("screener_book_value") and not financials.get("book_value"):
-                        financials["book_value"] = screener_data["screener_book_value"]
-                    if screener_data.get("face_value"):
-                        financials["face_value"] = screener_data["face_value"]
-                    if screener_data.get("sales_growth_5yr"):
-                        financials["sales_growth_5yr"] = screener_data["sales_growth_5yr"]
-                    if screener_data.get("profit_growth_5yr"):
-                        financials["profit_growth_5yr"] = screener_data["profit_growth_5yr"]
+                    print(f"[Scout Agent] [DATA] Screener.in fetch successful")
+                    
+                    # Check if we are currently using Mock/Fallback data from Yahoo
+                    is_mock = "Mock" in str(financials.get("source", "")) or financials.get("current_price", 0) == 1000.0
+                    
+                    if is_mock:
+                         print(f"[Scout Agent] [RECOVERY] Replacing Mock/Failed Yahoo data with Genuine Screener.in data")
+                         financials = ScoutAgent._map_screener_to_financials(screener_data, financials)
+                    else:
+                        print(f"[Scout Agent] [DATA] Enriching Yahoo data with Screener.in metrics")
+                        # Merge Screener data - prioritize Screener for these fields
+                        if screener_data.get("roce"):
+                            financials["roce"] = screener_data["roce"]
+                        if screener_data.get("promoter_holding"):
+                            financials["promoter_holding"] = screener_data["promoter_holding"]
+                        if screener_data.get("fii_holding"):
+                            financials["fii_holding"] = screener_data["fii_holding"]
+                        if screener_data.get("dii_holding"):
+                            financials["dii_holding"] = screener_data["dii_holding"]
+                        if screener_data.get("screener_book_value") and not financials.get("book_value"):
+                            financials["book_value"] = screener_data["screener_book_value"]
+                        if screener_data.get("face_value"):
+                            financials["face_value"] = screener_data["face_value"]
+                        if screener_data.get("sales_growth_5yr"):
+                            financials["sales_growth_5yr"] = screener_data["sales_growth_5yr"]
+                        if screener_data.get("profit_growth_5yr"):
+                            financials["profit_growth_5yr"] = screener_data["profit_growth_5yr"]
                 else:
-                    print(f"[Scout Agent] ⚠️ Screener.in: {screener_data.get('error', 'Unknown error')}")
+                    print(f"[Scout Agent] [WARN] Screener.in: {screener_data.get('error', 'Unknown error')}")
             except Exception as e:
-                print(f"[Scout Agent] ⚠️ Screener.in enrichment failed: {e}")
+                print(f"[Scout Agent] [WARN] Screener.in enrichment failed: {e}")
         
         # Apply data validation and corrections (currency, price anomalies)
         from app.services.data_validator import data_validator
@@ -137,35 +160,35 @@ class ScoutAgent:
         
         # Log sanity check results
         for alert in sanity_alerts:
-            severity_icon = "🚨" if alert.severity == "CRITICAL" else "⚠️" if alert.severity == "ERROR" else "ℹ️"
+            severity_icon = "[ALERT]" if alert.severity == "CRITICAL" else "[WARN]" if alert.severity == "ERROR" else "[INFO]"
             print(f"[Scout Agent] {severity_icon} Sanity Check [{alert.severity}]: {alert.message}")
             if alert.suggested_action:
-                print(f"              → Action: {alert.suggested_action}")
+                print(f"              -> Action: {alert.suggested_action}")
         
         # If significant price movement detected, search for specific news
         volatility_query = data_validator.get_news_search_query(anomalies, asset_id)
         if volatility_query:
-            print(f"[Scout Agent] ⚠️ Abnormal price movement detected! Searching: {volatility_query}")
+            print(f"[Scout Agent] [WARN] Abnormal price movement detected! Searching: {volatility_query}")
             volatility_news = ScoutAgent._get_volatility_news(asset_id, volatility_query)
             if volatility_news:
                 news = volatility_news + news  # Prepend volatility-specific news
         
         # Log corrections and anomalies
         if financials.get("currency_corrected"):
-            print(f"[Scout Agent] 🔧 Currency corrected: {financials.get('currency_original')} → {financials.get('currency')}")
+            print(f"[Scout Agent] [FIX] Currency corrected: {financials.get('currency_original')} -> {financials.get('currency')}")
         
         if financials.get("debt_to_equity_corrected"):
-            print(f"[Scout Agent] 🔧 D/E Ratio corrected: {financials.get('debt_to_equity_original')} → {financials.get('debt_to_equity')}")
+            print(f"[Scout Agent] [FIX] D/E Ratio corrected: {financials.get('debt_to_equity_original')} -> {financials.get('debt_to_equity')}")
         
         for anomaly in anomalies:
-            print(f"[Scout Agent] ⚠️ {anomaly.get('severity', 'INFO')}: {anomaly.get('message', 'Unknown anomaly')}")
+            print(f"[Scout Agent] [WARN] {anomaly.get('severity', 'INFO')}: {anomaly.get('message', 'Unknown anomaly')}")
         
         # Log collection summary
         fin_source = financials.get("source", "Unknown")
         tech_valid = "history" in technicals and len(technicals.get("history", [])) > 0
         macro_valid = macro.get("volatility_index") not in [None, "N/A", "Error"]
         
-        print(f"[Scout Agent] ✅ Collection complete:")
+        print(f"[Scout Agent] [OK] Collection complete:")
         print(f"  - Financials: {fin_source}")
         print(f"  - Technicals: {'Valid' if tech_valid else 'Mock'}")
         print(f"  - Macro: {'Valid' if macro_valid else 'Incomplete'}")
@@ -181,6 +204,62 @@ class ScoutAgent:
             "anomalies": anomalies,
             "sanity_alerts": [{"field": a.field, "severity": a.severity, "message": a.message} for a in sanity_alerts]
         }
+
+    @staticmethod
+    def _map_screener_to_financials(screener_data: Dict[str, Any], old_financials: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Maps known Screener.in data fields to our internal financials structure.
+        Used when primary data source fails.
+        """
+        # Start with a clean structure but keep existing useful metadata
+        new_fin = old_financials.copy()
+        
+        # Update source to indicate recovery
+        new_fin["source"] = "Screener.in (Valid)"
+        new_fin["is_mock"] = False
+        new_fin["currency"] = "INR"  # Screener is India-only
+        
+        # Map core metrics
+        if "screener_market_cap" in screener_data:
+            # Convert Cr to Billions or Trillions string format for consistency explanation
+            mcap_cr = screener_data["screener_market_cap"]
+            if mcap_cr:
+                 if mcap_cr > 100000:
+                     new_fin["market_cap"] = f"{mcap_cr/100000:.2f}T"
+                 else:
+                     new_fin["market_cap"] = f"{mcap_cr/1000:.2f}B"
+        
+        # Valuation
+        if "screener_pe" in screener_data:
+            new_fin["pe_ratio"] = screener_data["screener_pe"]
+        
+        if "screener_book_value" in screener_data:
+            new_fin["book_value"] = screener_data["screener_book_value"]
+            if "current_price" in screener_data: # If we scraped price? Screener usually has it
+                 pass # Screener scraper didn't return current price explicitly?
+        
+        # Profitability
+        if "roce" in screener_data:
+            new_fin["return_on_capital_employed"] = screener_data["roce"]
+        if "screener_roe" in screener_data:
+            new_fin["return_on_equity"] = screener_data["screener_roe"]
+        if "profit_margins" in screener_data: # If calculated
+             pass
+             
+        # Screener specific
+        if "promoter_holding" in screener_data:
+            new_fin["promoter_holding"] = screener_data["promoter_holding"]
+        
+        # Growth
+        if "sales_growth_5yr" in screener_data:
+            new_fin["revenue_growth"] = screener_data["sales_growth_5yr"]
+        if "profit_growth_5yr" in screener_data:
+            new_fin["earnings_growth"] = screener_data["profit_growth_5yr"]
+
+        # Note about missing keys
+        new_fin["summary"] = f"Analysis based on Screener.in data. Market Cap: {new_fin.get('market_cap', 'N/A')}, P/E: {new_fin.get('pe_ratio', 'N/A')}, ROE: {new_fin.get('return_on_equity', 'N/A')}%."
+        
+        return new_fin
 
     def _assess_data_quality(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -268,6 +347,8 @@ class ScoutAgent:
             key_stats = data_all.get('defaultKeyStatistics', {})
             summary_profile = data_all.get('summaryProfile', {})
             price_module = data_all.get('price', {})
+            summary_profile = data_all.get('summaryProfile', {})
+            price_module = data_all.get('price', {})
             quote_type_module = data_all.get('quoteType', {})
             
             # Check for Forex/Currency
@@ -297,7 +378,7 @@ class ScoutAgent:
                     "company_name": price_module.get("shortName") or quote_type_module.get("shortName") or asset_id,
                     "summary": f"Forex pair {asset_id} ({quote_type_module.get('longName', asset_id)})"
                 }
-                print(f"[Scout Agent] 💱 Forex pair detected: {data['company_name']}")
+                print(f"[Scout Agent] [FOREX] Forex pair detected: {data['company_name']}")
                 return data
 
             # Standard Equity Extraction
@@ -360,7 +441,28 @@ class ScoutAgent:
                 "sector": summary_profile.get("sector", "Unknown"),
                 "industry": summary_profile.get("industry", "Unknown"),
                 "company_name": summary_profile.get("longName") or key_stats.get("shortName", asset_id),
-                "summary": (summary_profile.get("longBusinessSummary", "") or "")[:500] + "..."
+                "summary": (summary_profile.get("longBusinessSummary", "") or "")[:500] + "...",
+
+                # NEW: Advanced Metrics (Requested by User)
+                "enterprise_value": ScoutAgent._safe_round(key_stats.get("enterpriseValue")),
+                "price_to_sales": ScoutAgent._safe_round(summary_detail.get("priceToSalesTrailing12Months")),
+                "enterprise_to_revenue": ScoutAgent._safe_round(key_stats.get("enterpriseToRevenue")),
+                "enterprise_to_ebitda": ScoutAgent._safe_round(key_stats.get("enterpriseToEbitda")),
+                
+                # Share Statistics
+                "shares_outstanding": ScoutAgent._safe_round(key_stats.get("sharesOutstanding"), 0),
+                "float_shares": ScoutAgent._safe_round(key_stats.get("floatShares"), 0),
+                "held_percent_insiders": ScoutAgent._safe_round(key_stats.get("heldPercentInsiders"), 4),
+                "held_percent_institutions": ScoutAgent._safe_round(key_stats.get("heldPercentInstitutions"), 4),
+                "short_ratio": ScoutAgent._safe_round(key_stats.get("shortRatio")),
+                
+                # Dates
+                "fiscal_year_ends": key_stats.get("lastFiscalYearEnd"),
+                "most_recent_quarter": key_stats.get("mostRecentQuarter"),
+                
+                # Balance Sheet Highlights
+                "total_cash": key_stats.get("totalCash"),
+                "total_debt": key_stats.get("totalDebt")
             }
             
             # Validate we got meaningful data
@@ -383,11 +485,11 @@ class ScoutAgent:
             return data
             
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ YahooQuery financials failed: {e}")
+            print(f"[Scout Agent] [WARN] YahooQuery financials failed: {e}")
             
             # Fallback: Try yfinance
             try:
-                print(f"[Scout Agent] 🔄 Attempting yfinance fallback for financials...")
+                print(f"[Scout Agent] [RETRY] Attempting yfinance fallback for financials...")
                 import yfinance as yf
                 ticker = yf.Ticker(asset_id)
                 info = ticker.info
@@ -408,6 +510,10 @@ class ScoutAgent:
                     "peg_ratio": info.get("pegRatio"),
                     "price_to_book": info.get("priceToBook"),
                     "market_cap": f"{info.get('marketCap', 0) / 1e9:.2f}B" if info.get('marketCap') else "N/A",
+                    "enterprise_value": info.get("enterpriseValue"),
+                    "price_to_sales": info.get("priceToSalesTrailing12Months"),
+                    "enterprise_to_revenue": info.get("enterpriseToRevenue"),
+                    "enterprise_to_ebitda": info.get("enterpriseToEbitda"),
                     
                     # Profitability
                     "profit_margins": info.get("profitMargins"),
@@ -418,10 +524,19 @@ class ScoutAgent:
                     "debt_to_equity": info.get("debtToEquity"),
                     "current_ratio": info.get("currentRatio"),
                     "free_cash_flow": info.get("freeCashflow"),
+                    "total_cash": info.get("totalCash"),
+                    "total_debt": info.get("totalDebt"),
                     
                     # Growth
                     "revenue_growth": info.get("revenueGrowth"),
                     "earnings_growth": info.get("earningsGrowth"),
+                    
+                    # Share Stats
+                    "shares_outstanding": info.get("sharesOutstanding"),
+                    "float_shares": info.get("floatShares"),
+                    "held_percent_insiders": info.get("heldPercentInsiders"),
+                    "held_percent_institutions": info.get("heldPercentInstitutions"),
+                    "short_ratio": info.get("shortRatio"),
                     
                     # Info
                     "sector": info.get("sector", "Unknown"),
@@ -430,7 +545,7 @@ class ScoutAgent:
                     "summary": info.get("longBusinessSummary", "")[:500] + "..."
                 }
                 
-                print(f"[Scout Agent] ✅ yfinance fallback successful")
+                print(f"[Scout Agent] [OK] yfinance fallback successful")
                 
                 # Count valid metrics
                 valid_metrics = sum(1 for v in data.values() if v is not None and v != "N/A")
@@ -439,40 +554,45 @@ class ScoutAgent:
                 return data
                 
             except Exception as yf_e:
-                print(f"[Scout Agent] ❌ yfinance fallback failed: {yf_e}")
+                print(f"[Scout Agent] [ERROR] yfinance fallback failed: {yf_e}")
             
             # Final Fallback: MOCK
-            print(f"[Scout Agent] 📦 Using synthetic mock data")
-            return ScoutAgent._get_mock_financials(asset_id)
+            # Final Fallback: MOCK
+            if settings.ALLOW_DEMO_DATA:
+                print(f"[Scout Agent] 📦 Using synthetic mock data (ALLOW_DEMO_DATA=True)")
+                return ScoutAgent._get_mock_financials(asset_id)
+            else:
+                from app.core.exceptions import DataFetchException
+                raise DataFetchException(asset_id, "financials", "All data providers failed and demo data is disabled.")
 
     @staticmethod
     def _get_mock_financials(asset_id: str) -> Dict[str, Any]:
         """
-        Returns realistic mock financial data as fallback.
+        Returns generic mock financial data as fallback when API fails.
         """
         return {
             "source": "Mock Data (API Fallback)",
             "symbol": asset_id,
-            "current_price": 3250.50,
+            "current_price": 1000.00,
             "currency": "INR",
-            "pe_ratio": 28.4,
-            "forward_pe": 24.1,
-            "peg_ratio": 1.5,
-            "price_to_book": 8.5,
-            "market_cap": "14.5T",
-            "profit_margins": 0.18,
-            "return_on_equity": 0.25,
-            "return_on_assets": 0.12,
-            "debt_to_equity": 12.5,
-            "current_ratio": 1.8,
-            "free_cash_flow": 50000000000,
-            "revenue_growth": 0.15,
-            "earnings_growth": 0.12,
-            "sector": "Technology",
-            "industry": "IT Services",
-            "summary": f"{asset_id} is a leading technology services company. (Mock data - API unavailable)",
-            "metrics_available": 15,
-            "metrics_total": 17,
+            "pe_ratio": 20.0,
+            "forward_pe": 18.0,
+            "peg_ratio": 1.0,
+            "price_to_book": 2.0,
+            "market_cap": "100B",
+            "profit_margins": 0.10,
+            "return_on_equity": 0.15,
+            "return_on_assets": 0.08,
+            "debt_to_equity": 50.0,
+            "current_ratio": 1.5,
+            "free_cash_flow": 1000000000,
+            "revenue_growth": 0.10,
+            "earnings_growth": 0.08,
+            "sector": "Unknown (API Failed)",
+            "industry": "Unknown (API Failed)",
+            "summary": f"Data for {asset_id} is currently unavailable due to API limits. This is placeholder data.",
+            "metrics_available": 5,
+            "metrics_total": 20,
             "is_mock": True
         }
 
@@ -483,37 +603,10 @@ class ScoutAgent:
         """
         try:
             # Primary: YahooQuery
+            # Primary: yfinance (More robust standard)
             try:
-                ticker = Ticker(asset_id)
-                hist = ticker.history(period="1y")
-                
-                if isinstance(hist, dict) or hist.empty:
-                    raise ValueError("No historical data")
-                
-                # Handle MultiIndex
-                if 'symbol' in hist.index.names:
-                    df = hist.xs(asset_id, level='symbol')
-                else:
-                    df = hist
-
-                if df.empty or len(df) < 50:
-                    raise ValueError("Insufficient historical data")
-
-                # Determine close column
-                close_col = 'close' if 'close' in df.columns else 'adjclose'
-                if close_col not in df.columns:
-                    if 'Close' in df.columns:
-                        close_col = 'Close'
-                    else:
-                        raise ValueError("No Close price column found")
-                        
-                source = "YahooQuery (Live)"
-
-            except Exception as yq_e:
-                print(f"[Scout Agent] ⚠️ YahooQuery technicals failed: {yq_e}")
-                # Fallback: yfinance
                 import yfinance as yf
-                print(f"[Scout Agent] 🔄 Attempting yfinance fallback for technicals...")
+                # print(f"[Scout Agent] [CHART] Fetching technicals via yfinance for {asset_id}...")
                 ticker = yf.Ticker(asset_id)
                 df = ticker.history(period="1y")
                 
@@ -521,7 +614,40 @@ class ScoutAgent:
                     raise ValueError("yfinance returned empty technicals")
                 
                 close_col = 'Close'
-                source = "yfinance (Fallback)"
+                source = "yfinance (Live)"
+
+            except Exception as yf_e:
+                print(f"[Scout Agent] [WARN] yfinance technicals failed: {yf_e}")
+                
+                # Fallback: YahooQuery
+                try:
+                    print(f"[Scout Agent] [RETRY] Attempting YahooQuery fallback for technicals...")
+                    ticker = Ticker(asset_id)
+                    hist = ticker.history(period="1y")
+                    
+                    if isinstance(hist, dict) or hist.empty:
+                        raise ValueError("No historical data")
+                    
+                    # Handle MultiIndex
+                    if 'symbol' in hist.index.names:
+                        df = hist.xs(asset_id, level='symbol')
+                    else:
+                        df = hist
+
+                    if df.empty or len(df) < 50:
+                        raise ValueError("Insufficient historical data")
+
+                    # Determine close column
+                    close_col = 'close' if 'close' in df.columns else 'adjclose'
+                    if close_col not in df.columns:
+                        if 'Close' in df.columns:
+                            close_col = 'Close'
+                        else:
+                            raise ValueError("No Close price column found")
+                            
+                    source = "YahooQuery (Fallback)"
+                except Exception as yq_e:
+                    raise ValueError(f"Both providers failed. yfinance: {yf_e}, YahooQuery: {yq_e}")
 
             close = df[close_col]
             
@@ -599,13 +725,13 @@ class ScoutAgent:
             # Generate price alert for significant moves
             price_alert = None
             if price_change_5d <= -5:
-                price_alert = f"⚠️ ALERT: Price dropped {abs(price_change_5d):.1f}% in last 5 days"
+                price_alert = f"[WARN] ALERT: Price dropped {abs(price_change_5d):.1f}% in last 5 days"
             elif price_change_5d >= 5:
-                price_alert = f"📈 ALERT: Price surged {price_change_5d:.1f}% in last 5 days"
+                price_alert = f"[CHART] ALERT: Price surged {price_change_5d:.1f}% in last 5 days"
             elif price_change_1d <= -3:
-                price_alert = f"⚠️ ALERT: Price dropped {abs(price_change_1d):.1f}% today"
+                price_alert = f"[WARN] ALERT: Price dropped {abs(price_change_1d):.1f}% today"
             elif price_change_1d >= 3:
-                price_alert = f"📈 ALERT: Price surged {price_change_1d:.1f}% today"
+                price_alert = f"[CHART] ALERT: Price surged {price_change_1d:.1f}% today"
 
             return {
                 "source": source,
@@ -629,53 +755,63 @@ class ScoutAgent:
             }
             
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ Error calculating technicals for {asset_id}: {e}")
-            return ScoutAgent._get_mock_technicals()
+            print(f"[Scout Agent] [WARN] Error calculating technicals for {asset_id}: {e}")
+            if settings.ALLOW_DEMO_DATA:
+                 return ScoutAgent._get_mock_technicals()
+            raise e  # Propagate error if no demo data allowed
 
     @staticmethod
     def _get_mock_technicals() -> Dict[str, Any]:
         """
-        Returns mock technical data as fallback.
+        Returns generic mock technical data as fallback.
         """
         base_date = datetime.date.today()
         return {
             "source": "Mock Data (API Fallback)",
-            "current_price": 3250.50,
-            "sma_50": 3100.00,
-            "sma_200": 3000.00,
-            "trend_signal": "Uptrend (Golden Cross)",
-            "rsi_14": 55.0,
+            "current_price": 1000.00,
+            "sma_50": 980.00,
+            "sma_200": 950.00,
+            "trend_signal": "Neutral (Data Unavailable)",
+            "rsi_14": 50.0,
             "rsi_status": "Neutral",
-            "volatility_annualized": "18.50%",
-            "volatility_raw": 0.185,
-            "high_52w": 3400.00,
-            "low_52w": 2600.00,
-            "pct_from_52w_high": -4.41,
-            "history": [
-                {
-                    "date": str(base_date - datetime.timedelta(days=i)),
-                    "price": 3000 + (100 - i) * 2.5,
-                    "sma_50": 3050 + (100 - i) * 0.5
-                }
-                for i in range(100, 0, -1)
-            ],
-            "data_points": 100,
-            "note": "Mock Data (API Failed)"
+            "volatility_annualized": "15.00%",
+            "volatility_raw": 0.15,
+            "high_52w": 1100.00,
+            "low_52w": 900.00,
+            "pct_from_52w_high": -9.09,
+            "history": [],
+            "data_points": 0,
+            "note": "Mock Data (API Failed) - Real chart data unavailable"
         }
 
     @staticmethod
-    def _get_macro_data_static() -> Dict[str, Any]:
+    def _get_macro_data_static(asset_id: str = None) -> Dict[str, Any]:
         """
-        Fetch macro indicators with improved error handling.
+        Fetch macro indicators with region awareness.
+        Uses India VIX for .NS/.BO stocks, US VIX for others.
         """
-        macro_proxies = {
-            "interest_rate_proxy": "^TNX",
-            "volatility_index": "^VIX",
-            "market_index": "^NSEI"
-        }
+        # Detect region from asset_id
+        is_india = asset_id and asset_id.upper().endswith((".NS", ".BO"))
+        region = "INDIA" if is_india else "US"
+        
+        # Region-specific macro proxies
+        # Region-specific macro proxies
+        if is_india:
+            macro_proxies = {
+                "volatility_index": "^INDIAVIX",     # India VIX
+                "market_change_pct": "^NSEI",        # Nifty 50
+                "interest_rate_proxy": "^TNX",       # US 10Y as Proxy (hard to get India 10Y on Yahoo)
+            }
+        else:
+            macro_proxies = {
+                "interest_rate_proxy": "^TNX",        # US 10Y Treasury
+                "volatility_index": "^VIX",           # US VIX
+                "market_change_pct": "^GSPC",         # S&P 500
+            }
         
         results = {
-            "source": "YahooQuery (Macro)",
+            "source": f"YahooQuery (Macro - {region})",
+            "region": region,
             "timestamp": datetime.datetime.now().isoformat()
         }
         
@@ -707,44 +843,42 @@ class ScoutAgent:
                     results["vix_interpretation"] = "Normal Range"
                     
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ Error fetching macro data: {e}")
+            print(f"[Scout Agent] [WARN] Error fetching macro data: {e}")
             results["error"] = str(e)
             for key in macro_proxies:
                 if key not in results:
                     results[key] = "Error"
-                    
-            # Integrate FRED Data (Economic Indicators)
-            try:
-                from app.services.fred_service import fred_service
-                fred_data = fred_service.get_macro_summary()
-                if "indicators" in fred_data:
-                    for ind_name, ind_data in fred_data["indicators"].items():
-                        # Map FRED indicators to flat structure
-                        if isinstance(ind_data, dict):
-                            results[f"fred_{ind_name}"] = ind_data.get("value", "N/A")
-                            results[f"fred_{ind_name}_desc"] = ind_data.get("description", "")
+        
+        # Integrate FRED Data (Economic Indicators)
+        try:
+            from app.services.fred_service import fred_service
+            fred_data = fred_service.get_macro_summary()
+            if "indicators" in fred_data:
+                for ind_name, ind_data in fred_data["indicators"].items():
+                    if isinstance(ind_data, dict):
+                        results[f"fred_{ind_name}"] = ind_data.get("value", "N/A")
+                        results[f"fred_{ind_name}_desc"] = ind_data.get("description", "")
+            
+            if "yield_curve" in fred_data:
+                results["yield_curve_spread"] = fred_data["yield_curve"].get("spread")
+                results["yield_curve_signal"] = fred_data["yield_curve"].get("status")
                 
-                # Copy yield curve info
-                if "yield_curve" in fred_data:
-                    results["yield_curve_spread"] = fred_data["yield_curve"].get("spread")
-                    results["yield_curve_signal"] = fred_data["yield_curve"].get("status")
-                    
-            except Exception as e:
-                print(f"[Scout Agent] ⚠️ FRED integration failed: {e}")
+        except Exception as e:
+            print(f"[Scout Agent] [WARN] FRED integration failed: {e}")
 
-            # Integrate Real-Time RBI Data (Scraping)
+        # Integrate Real-Time RBI Data for Indian stocks
+        if is_india:
             try:
                 from app.services.rbi_service import rbi_service
                 rbi_data = rbi_service.get_real_time_rates()
                 if "repo_rate" in rbi_data:
-                    # Override FRED data with fresher RBI data
-                    results["fred_india_repo_rate"] = rbi_data["repo_rate"]
-                    results["fred_india_repo_rate_desc"] = "Policy Repo Rate (RBI Live)"
-                    print(f"[Scout Agent] 🇮🇳 RBI Live Rate: {rbi_data['repo_rate']}%")
+                    results["rbi_repo_rate"] = rbi_data["repo_rate"]
+                    results["rbi_repo_rate_desc"] = "Policy Repo Rate (RBI Live)"
+                    print(f"[Scout Agent] [INDIA] RBI Live Rate: {rbi_data['repo_rate']}%")
                 elif "error" in rbi_data:
-                    print(f"[Scout Agent] ⚠️ RBI Scraper Warning: {rbi_data['error']}")
+                    print(f"[Scout Agent] [WARN] RBI Scraper Warning: {rbi_data['error']}")
             except Exception as e:
-                print(f"[Scout Agent] ⚠️ RBI Scraper Failed: {e}")
+                print(f"[Scout Agent] [WARN] RBI Scraper Failed: {e}")
 
         return results
 
@@ -773,7 +907,7 @@ class ScoutAgent:
             except:
                 search_term = asset_id.replace(".NS", "").replace(".BO", "") + " stock news"
             
-            print(f"[Scout Agent] 📰 Searching news for: {search_term}")
+            print(f"[Scout Agent] [NEWS] Searching news for: {search_term}")
             search_result = search(search_term)
             
             if search_result and "news" in search_result:
@@ -804,11 +938,11 @@ class ScoutAgent:
                             })
                 
                 if results:
-                    print(f"[Scout Agent] ✅ Found {len(results)} news items via search")
+                    print(f"[Scout Agent] [OK] Found {len(results)} news items via search")
                     return results
                     
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ yahooquery search news failed: {e}")
+            print(f"[Scout Agent] [WARN] yahooquery search news failed: {e}")
         
         # Method 2: Try yahooquery Ticker.news() (sometimes works)
         try:
@@ -830,11 +964,11 @@ class ScoutAgent:
                             })
                 
                 if results:
-                    print(f"[Scout Agent] ✅ Found {len(results)} news items via Ticker.news()")
+                    print(f"[Scout Agent] [OK] Found {len(results)} news items via Ticker.news()")
                     return results
                     
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ yahooquery Ticker.news() failed: {e}")
+            print(f"[Scout Agent] [WARN] yahooquery Ticker.news() failed: {e}")
         
         # Method 3: Try yfinance with rate limiting
         try:
@@ -861,11 +995,11 @@ class ScoutAgent:
                             })
                 
                 if results:
-                    print(f"[Scout Agent] ✅ Found {len(results)} news items via yfinance")
+                    print(f"[Scout Agent] [OK] Found {len(results)} news items via yfinance")
                     return results
                     
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ yfinance news failed: {e}")
+            print(f"[Scout Agent] [WARN] yfinance news failed: {e}")
         
         # Method 4: Generate fallback news based on company info
         if not results:
@@ -922,7 +1056,7 @@ class ScoutAgent:
         try:
             from yahooquery import search
             
-            print(f"[Scout Agent] 🔎 Volatility news search: {query}")
+            print(f"[Scout Agent] [SEARCH] Volatility news search: {query}")
             search_result = search(query)
             
             if search_result and "news" in search_result:
@@ -955,10 +1089,10 @@ class ScoutAgent:
                             })
                 
                 if results:
-                    print(f"[Scout Agent] ✅ Found {len(results)} volatility-related news items")
+                    print(f"[Scout Agent] [OK] Found {len(results)} volatility-related news items")
                     
         except Exception as e:
-            print(f"[Scout Agent] ⚠️ Volatility news search failed: {e}")
+            print(f"[Scout Agent] [WARN] Volatility news search failed: {e}")
         
         return results
 
@@ -1026,6 +1160,79 @@ class ScoutAgent:
                 return "Neutral (Sideways)"
         except:
             return "Unknown"
+
+    @staticmethod
+    def _get_demo_company_data() -> Dict[str, Any]:
+        """Mock data for DEMO.NS - safe company for presentations."""
+        import random
+        
+        # Generate realistic price history
+        base_price = 1250.00
+        history = []
+        for i in range(90):
+            date = (datetime.datetime.now() - datetime.timedelta(days=90-i)).strftime("%Y-%m-%d")
+            variation = random.uniform(-2, 2.5)
+            price = base_price * (1 + (i * 0.002) + (variation / 100))
+            history.append({"date": date, "close": round(price, 2)})
+        
+        current_price = history[-1]["close"] if history else 1350.00
+        
+        financials = {
+            "source": "Demo Data",
+            "symbol": "RELIANCE.NS",
+            "company_name": "Reliance Industries Limited",
+            "sector": "Energy",
+            "industry": "Oil & Gas Refining",
+            "current_price": current_price,
+            "currency": "INR",
+            "market_cap": 1800000000000,  # 18,00,000 Cr
+            "52_week_high": current_price * 1.12,
+            "52_week_low": current_price * 0.82,
+            "pe_ratio": 24.8,
+            "pb_ratio": 2.1,
+            "roe": 9.5,
+            "debt_to_equity": 0.42,
+            "dividend_yield": 0.35,
+            "eps": current_price / 24.8,
+            "revenue_growth": 12.5,
+            "profit_margin": 8.2,
+            "operating_margin": 14.0,
+            "summary": "Reliance Industries Limited is India's largest private sector company. It operates across energy, petrochemicals, retail, and telecommunications (Jio). Mukesh Ambani serves as Chairman. The company has a diversified business model with strong cash flows."
+        }
+        
+        technicals = {
+            "history": history,
+            "current_price": current_price,
+            "sma_50": current_price * 0.98,
+            "sma_200": current_price * 0.92,
+            "rsi_14": 58.5,
+            "trend_signal": "Uptrend (Bullish)",
+            "support": current_price * 0.95,
+            "resistance": current_price * 1.05
+        }
+        
+        macro = {
+            "vix": 14.5,
+            "nifty_trend": "Bullish",
+            "interest_rate": 6.5,
+            "inflation": 5.2,
+            "global_sentiment": "Cautiously Optimistic"
+        }
+        
+        news = [
+            {"title": "Reliance Jio adds 5 million subscribers in December", "publisher": "Economic Times", "date": "2025-01-05"},
+            {"title": "Reliance Retail expansion: 500 new stores planned", "publisher": "Moneycontrol", "date": "2025-01-03"},
+            {"title": "Mukesh Ambani announces green energy investment of $10 billion", "publisher": "Business Standard", "date": "2025-01-01"}
+        ]
+        
+        return {
+            "financials": financials,
+            "technicals": technicals,
+            "macro": macro,
+            "news": news,
+            "anomalies": [],
+            "sanity_alerts": []
+        }
 
 
 scout_agent = ScoutAgent()

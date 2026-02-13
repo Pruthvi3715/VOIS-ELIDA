@@ -5,7 +5,7 @@ from app.agents.base import BaseAgent
 class QuantAgent(BaseAgent):
     """
     Quantitative Analysis Agent - Evaluates assets using numerical and financial metrics.
-    Enhanced with better fallback logic, confidence scoring, and structured output.
+    Enhanced with Kill Flag logic for critical risk detection.
     """
     
     def __init__(self):
@@ -20,6 +20,46 @@ class QuantAgent(BaseAgent):
             "profit_margins": {"good": (0.15, 1), "fair": (0.05, 0.15), "poor": (0, 0.05)},
             "return_on_equity": {"good": (0.15, 1), "fair": (0.08, 0.15), "poor": (0, 0.08)},
         }
+        
+        # KILL FLAGS: Critical thresholds that cap max score at 40
+        self.kill_flags = {
+            "debt_to_equity": 200,    # D/E > 200 = extreme leverage
+            "pe_ratio": 100,          # P/E > 100 = extreme overvaluation
+            "profit_margins": -0.10,  # Negative 10%+ margins = losing money
+        }
+
+    def _check_kill_flags(self, financial_data: List[Dict[str, Any]]) -> tuple:
+        """
+        Check for kill flags that should cap the maximum score.
+        Returns: (has_kill_flag, list of triggered flags)
+        """
+        triggered = []
+        
+        for item in financial_data:
+            content = item.get("content", "")
+            try:
+                import ast
+                data = content if isinstance(content, dict) else ast.literal_eval(str(content))
+                
+                # Check D/E ratio
+                de = data.get("debt_to_equity")
+                if isinstance(de, (int, float)) and de > self.kill_flags["debt_to_equity"]:
+                    triggered.append(f"CRITICAL: D/E ratio of {de:.1f} exceeds 200 (extreme leverage)")
+                
+                # Check P/E ratio
+                pe = data.get("pe_ratio")
+                if isinstance(pe, (int, float)) and pe > self.kill_flags["pe_ratio"]:
+                    triggered.append(f"CRITICAL: P/E ratio of {pe:.1f} exceeds 100 (extreme overvaluation)")
+                
+                # Check negative margins
+                margins = data.get("profit_margins")
+                if isinstance(margins, (int, float)) and margins < self.kill_flags["profit_margins"]:
+                    triggered.append(f"CRITICAL: Profit margins of {margins:.1%} are deeply negative")
+                    
+            except Exception:
+                continue
+        
+        return len(triggered) > 0, triggered
 
     def run(self, context: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -28,103 +68,47 @@ class QuantAgent(BaseAgent):
         # Filter for financial data
         financial_data = [c for c in context if c.get("metadata", {}).get("type") == "financials"]
         
+        # Check for kill flags FIRST
+        has_kill_flag, kill_reasons = self._check_kill_flags(financial_data)
+        
         # Calculate data quality
         data_quality = self.calculate_data_quality(financial_data)
         
         # Prepare context for LLM
         context_str = "\n".join([str(item.get("content")) for item in financial_data])
         
-        prompt = f"""
-        You are the Quantitative Analysis Agent - the most rigorous numbers analyst in the financial industry.
-
-        CRITICAL ROLE:
-        You MUST provide DEEP, DATA-DRIVEN analysis with EXPLICIT CITATIONS for every claim.
-
-        MANDATORY ANALYSIS STRUCTURE:
-        For EACH metric, you MUST include:
-        1. The EXACT numerical value from the context
-        2. Comparison to industry benchmarks or historical norms
-        3. Percentage deviation from benchmarks
-        4. Impact on final score (+X points or -X points)
-
-        METRICS TO ANALYZE (cite exact values):
-        - Valuation: P/E Ratio, Forward P/E, PEG Ratio, Price-to-Book
-        - Profitability: Profit Margins, Return on Equity, Return on Assets
-        - Financial Health: Debt-to-Equity, Current Ratio, Free Cash Flow
-        - Growth: Revenue Growth, Earnings Growth
-        - Market Position: Market Capitalization, Sector, Industry
-
-        OUTPUT FORMAT (STRICT JSON):
-        {{
-            "score": <0-100>,
-            "confidence": <0-100 based on data completeness>,
-            "metrics_used": ["Format: 'P/E: 23.5', 'ROE: 18.2%', 'Debt/Equity: 45.3'"],
-            "metrics_values": {{"pe_ratio": 23.5, "roe": 0.182, "debt_to_equity": 45.3}},
-            "strengths": [
-                "MUST cite specific numbers. Example: 'ROE of 22.5% exceeds industry average of 15%, indicating superior capital efficiency and placing the company in the top quartile of its sector.'"
-            ],
-            "weaknesses": [
-                "MUST cite specific numbers. Example: 'P/E ratio of 32.1 is 45% above the sector median of 22.0, suggesting potential overvaluation unless justified by exceptional growth prospects.'"
-            ],
-            "reasoning": '''
-            WRITE 4-5 DETAILED PARAGRAPHS with this EXACT structure:
-            
-            Paragraph 1 - Valuation Assessment:
-            - State each valuation metric with exact value
-            - Compare to benchmarks (e.g., "P/E of X vs sector average of Y")
-            - Calculate percentage premium/discount
-            - Explain what this means for the stock
-            
-            Paragraph 2 - Profitability & Efficiency:
-            - Cite profit margins, ROE, ROA with exact percentages
-            - Compare to industry standards
-            - Assess trends (improving/declining)
-            - Explain competitive advantages or disadvantages
-            
-            Paragraph 3 - Financial Health:
-            - State Debt-to-Equity ratio
-            - Analyze leverage relative to industry norms
-            - Assess free cash flow and liquidity
-            - Discuss solvency risks or strengths
-            
-            Paragraph 4 - Growth & Market Position:
-            - Cite revenue and earnings growth rates
-            - Compare to historical averages and peer growth
-            - Analyze market cap and competitive position
-            - Assess scalability and market opportunities
-            
-            Paragraph 5 - Score Justification:
-            - Explain EXACTLY why the score is X and not X+20 or X-20
-            - List each factor contributing to score
-            - Provide weighted breakdown (e.g., "Valuation contributes -10 points due to elevated P/E, while profitability adds +25 points due to exceptional margins")
-            '''
-        }}
-
-        STRICT SCORING GUIDELINES:
-        - 85-100: Exceptional fundamentals across ALL metrics (e.g., PEG<1.0, ROE>20%, D/E<30, Margins>15%)
-        - 70-84: Strong fundamentals with 1-2 minor weaknesses
-        - 55-69: Above average, but notable concerns (e.g., high valuation or moderate debt)
-        - 40-54: Mixed signals - some good metrics offset by significant concerns
-        - 25-39: More weaknesses than strengths - fundamental issues present
-        - 0-24: Distress or severe fundamental deterioration
-
-        ABSOLUTE REQUIREMENTS:
-        ❌ FORBIDDEN: "Good P/E", "Strong fundamentals", "Attractive valuation" WITHOUT NUMBERS
-        ✅ REQUIRED: "P/E of 12.5 is 40% below sector average of 20.8, indicating undervaluation"
+        # Add kill flag warning to prompt if triggered
+        kill_flag_warning = ""
+        if has_kill_flag:
+            kill_flag_warning = f"""
+⚠️ KILL FLAGS TRIGGERED - MAXIMUM SCORE CAPPED AT 40:
+{chr(10).join(kill_reasons)}
+Your score MUST NOT exceed 40 due to these critical risks.
+"""
         
-        ❌ FORBIDDEN: "The company is profitable"
-        ✅ REQUIRED: "Net profit margin of 18.2% exceeds the sector median of 12.5%, ranking in the 75th percentile"
-        
-        If ANY metric is missing from context, explicitly state "[Metric X] not available" and reduce confidence by 10 points per missing critical metric.
+        prompt = f"""Analyze these financials and return JSON only.
+{kill_flag_warning}
+DATA:
+{context_str if context_str else "No data available"}
 
-        CONTEXT (Retrieved from RAG):
-        {context_str if context_str else "CRITICAL ERROR: No financial data available. Cannot perform quantitative analysis. Return score:0, confidence:0, reasoning:'No financial data provided in context.'"}
-        """
+OUTPUT FORMAT:
+{{
+    "score": 0-100,
+    "confidence": 0-100,
+    "reasoning": "2-3 sentences explaining the score with specific numbers from the data",
+    "strengths": ["1-2 bullet points with numbers"],
+    "weaknesses": ["1-2 bullet points with numbers"],
+    "kill_flags": ["List any critical risks like extreme D/E or P/E"]
+}}
+
+SCORING: 0-40=Poor, 40-60=Fair, 60-80=Good, 80-100=Excellent
+{"⚠️ IMPORTANT: Due to kill flags, max score is 40!" if has_kill_flag else ""}
+Focus on: P/E, ROE, Debt/Equity, Margins. Cite actual numbers."""
         
         # Call LLM with fallback
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a strict Quantitative Analyst. Output valid JSON only. Justify every score with specific metrics.",
+            system_prompt=self.get_guardrail_system_prompt("You are a strict Quantitative Analyst. Output valid JSON only. Justify every score with specific metrics from the provided data."),
             fallback_func=self._rule_based_analysis,
             fallback_args=financial_data
         )
@@ -134,6 +118,15 @@ class QuantAgent(BaseAgent):
         
         # Determine if fallback was used
         fallback_used = "[Fallback]" in response or "[Rule-Based]" in response
+        
+        # KILL FLAG ENFORCEMENT: Cap score at 40 if critical risks detected
+        if has_kill_flag:
+            original_score = parsed["score"]
+            parsed["score"] = min(parsed["score"], 40)
+            if original_score > 40:
+                parsed["reasoning"] = f"[SCORE CAPPED 40↓{original_score}] " + parsed.get("reasoning", "")
+            if "kill_flags" not in parsed:
+                parsed["kill_flags"] = kill_reasons
         
         # Adjust confidence based on data quality
         if data_quality == "Low":

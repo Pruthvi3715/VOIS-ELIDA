@@ -18,10 +18,10 @@ try:
             return self.model.encode(input).tolist()
     
     HAS_REAL_EMBEDDINGS = True
-    print("RAG Service: ✅ Successfully loaded sentence-transformers.")
+    print("RAG Service: [OK] Successfully loaded sentence-transformers.")
 except ImportError:
     HAS_REAL_EMBEDDINGS = False
-    print("RAG Service: ⚠️ sentence-transformers not found. Using Mock embeddings.")
+    print("RAG Service: [WARN] sentence-transformers not found. Using Mock embeddings.")
 
 class MockEmbeddingFunction(EmbeddingFunction):
     def __call__(self, input: Documents) -> Embeddings:
@@ -67,7 +67,7 @@ class RAGService:
                     self._document_hashes.add(self._hash_document(doc))
             print(f"RAG Service: Loaded {len(self._document_hashes)} existing document hashes.")
         except Exception as e:
-            print(f"RAG Service: ⚠️ Could not load existing hashes: {e}")
+            print(f"RAG Service: [WARN] Could not load existing hashes: {e}")
     
     def _hash_document(self, document: str) -> str:
         """Create a hash for deduplication."""
@@ -143,7 +143,7 @@ class RAGService:
             
             return results
         except Exception as e:
-            print(f"RAG Service: ❌ Query error: {e}")
+            print(f"RAG Service: [ERROR] Query error: {e}")
             return {"documents": [[]], "metadatas": [[]], "ids": [[]]}
 
     def get_by_asset(self, asset_id: str, doc_type: Optional[str] = None) -> Dict[str, Any]:

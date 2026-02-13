@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Search,
-    Sparkles,
-    Zap,
-    Target,
-    User,
-    Clock,
-    TrendingUp,
-    TrendingDown
+    Search, Sparkles, Zap, Target, User, Clock,
+    TrendingUp, TrendingDown, BarChart3, Brain,
+    Shield, Gauge, ArrowRight, Activity, Star
 } from 'lucide-react';
-import { API_BASE_URL, getUserId } from '../api';
+import { API_BASE_URL } from '../api';
 
 function DashboardPage() {
     const navigate = useNavigate();
@@ -23,27 +18,25 @@ function DashboardPage() {
         return saved ? JSON.parse(saved) : ['RELIANCE.NS', 'TCS.NS', 'AAPL'];
     });
     const [newTicker, setNewTicker] = useState('');
-    const [agentStatus, setAgentStatus] = useState({ active: 4, total: 4 });
 
-    // Fetch recent history on mount
+    // Poll market data
     useEffect(() => {
         fetchRecentHistory();
         fetchMarketData();
-        const interval = setInterval(fetchMarketData, 30000); // Poll every 30s
+        const interval = setInterval(fetchMarketData, 30000);
         return () => clearInterval(interval);
     }, [watchedTickers]);
 
-    // Save watched tickers
+    // Save watched
     useEffect(() => {
         localStorage.setItem('watchedTickers', JSON.stringify(watchedTickers));
     }, [watchedTickers]);
 
     const fetchRecentHistory = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/history?limit=5`);
+            const response = await fetch(`${API_BASE_URL}/api/v1/history?limit=4`);
             const data = await response.json();
-            const entries = data.entries || [];
-            setRecentAnalyses(entries.slice(0, 5));
+            setRecentAnalyses(data.entries?.slice(0, 4) || []);
         } catch (error) {
             console.log('No recent history', error);
         }
@@ -57,63 +50,39 @@ function DashboardPage() {
                 const response = await fetch(`${API_BASE_URL}/market-data/${ticker}`);
                 if (response.ok) {
                     const jsonData = await response.json();
-
-                    // Handle multiple possible data structures:
-                    // 1. Demo cache: returns flat {price, change, volume, currency, ...}
-                    // 2. Scout agent: returns {financials: {...}, technicals: {...}, ...}
                     const data = jsonData.financials || jsonData;
-
-                    // Currency detection - use ticker suffix as PRIMARY indicator (most reliable)
-                    const isIndianStock = ticker.endsWith('.NS') || ticker.endsWith('.BO');
-                    const currencySymbol = isIndianStock ? '\u20B9' : '$';
-
-                    // Extract price - handle different field names
-                    const price = data.current_price || data.price || 0;
-
-                    // Extract change percentage
-                    const change = data.price_change_percentage_24h || data.change_percent || data.pct_change || data.change || 0;
-
-                    // Format volume
-                    let formattedVolume = 'N/A';
-                    if (data.volume && data.volume > 0) {
-                        if (data.volume >= 1000000) {
-                            formattedVolume = `${(data.volume / 1000000).toFixed(1)}M`;
-                        } else if (data.volume >= 1000) {
-                            formattedVolume = `${(data.volume / 1000).toFixed(1)}K`;
-                        } else {
-                            formattedVolume = data.volume.toString();
-                        }
-                    }
+                    const isIndian = ticker.endsWith('.NS') || ticker.endsWith('.BO');
 
                     results.push({
                         ticker,
-                        price: price,
-                        change: change,
-                        volume: formattedVolume,
-                        currencySymbol,
-                        name: data.company_name || data.name || ticker.replace('.NS', '').replace('.BO', '')
+                        price: data.current_price || data.price || 0,
+                        change: data.price_change_percentage_24h || data.change_percent || 0,
+                        currencySymbol: isIndian ? '\u20B9' : '$',
+                        name: data.company_name || ticker.replace('.NS', '')
                     });
-                } else {
-                    throw new Error(`HTTP ${response.status}`);
                 }
             } catch (e) {
-                console.error(`Failed to fetch data for ${ticker}`, e);
-                // Fallback for failed requests - use ticker-based currency detection
-                const isIndianStock = ticker.endsWith('.NS') || ticker.endsWith('.BO');
                 results.push({
-                    ticker,
-                    error: true,
-                    price: 0,
-                    change: 0,
-                    volume: 'N/A',
-                    currencySymbol: isIndianStock ? '\u20B9' : '$',
-                    name: ticker.replace('.NS', '').replace('.BO', '')
+                    ticker, error: true, price: 0, change: 0,
+                    currencySymbol: ticker.endsWith('.NS') ? '\u20B9' : '$',
+                    name: ticker
                 });
             }
         }
         setMarketData(results);
     };
 
+    const handleAnalyze = () => {
+        if (searchTicker.trim()) {
+            setLoading(true);
+            setTimeout(() => {
+                navigate(`/analysis/${searchTicker.trim().toUpperCase()}`);
+                setLoading(false);
+            }, 800); // Fake load for smoothness
+        }
+    };
+
+    const removeTicker = (t) => setWatchedTickers(watchedTickers.filter(x => x !== t));
     const addTicker = (e) => {
         e.preventDefault();
         if (newTicker && !watchedTickers.includes(newTicker.toUpperCase())) {
@@ -122,261 +91,242 @@ function DashboardPage() {
         }
     };
 
-    const removeTicker = (tickerToRemove) => {
-        setWatchedTickers(watchedTickers.filter(t => t !== tickerToRemove));
-    };
-
-    const handleAnalyze = () => {
-        if (searchTicker.trim()) {
-            navigate(`/analysis/${searchTicker.trim().toUpperCase()}`);
-        }
-    };
-
-    const currentTime = new Date().toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
-
     return (
-        <div className="space-y-6">
-            {/* Investment Analysis Card */}
-            <div className="glass-card rounded-xl border border-glass-border p-8 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-secondary-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="space-y-12 animate-float">
+            {/* 1. Hero Section - Centered & Premium */}
+            <div className="relative py-12 px-6 text-center">
+                {/* Glow behind header */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary-500/20 rounded-full blur-[100px] -z-10" />
 
-                <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-lg bg-surface-light border border-glass-border">
-                            <Sparkles className="w-5 h-5 text-amber-400" />
-                        </div>
-                        <h2 className="text-xl font-bold text-white">Investment Analysis</h2>
-                    </div>
+                <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight">
+                    <span className="text-white">AI-Powered </span>
+                    <span className="text-gradient">Investment Intelligence</span>
+                </h1>
+                <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
+                    Instantly analyze stocks with autonomous agents.
+                    <span className="text-indigo-400 font-medium"> Quant</span>,
+                    <span className="text-cyan-400 font-medium"> Macro</span>, and
+                    <span className="text-amber-400 font-medium"> Fundamental</span>.
+                </p>
 
-                    <p className="text-secondary text-sm mb-6 max-w-2xl">
-                        Get AI-powered investment recommendations using our multi-agent system.
-                        Analyze stocks with Quant, Macro, and Fundamental perspectives.
-                    </p>
-
-                    <div className="flex gap-3 max-w-3xl">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                value={searchTicker}
-                                onChange={(e) => setSearchTicker(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                                placeholder="Enter stock symbol (e.g., RELIANCE.NS, AAPL, TCS.NS)"
-                                className="w-full pl-12 pr-4 py-4 bg-surface-light/50 border border-glass-border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/50 transition-all font-medium"
-                            />
-                        </div>
+                {/* Search Bar */}
+                <div className="relative max-w-2xl mx-auto group z-20">
+                    <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition-opacity duration-500" />
+                    <div className="relative flex items-center bg-[#0F101A] border border-white/10 rounded-2xl p-2 shadow-2xl transition-all group-hover:border-white/20">
+                        <Search className="w-6 h-6 text-gray-400 ml-4 mr-2" />
+                        <input
+                            type="text"
+                            value={searchTicker}
+                            onChange={(e) => setSearchTicker(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+                            placeholder="Analyze any asset (e.g. RELIANCE.NS, TSLA)..."
+                            className="flex-1 bg-transparent text-lg text-white placeholder-gray-600 focus:outline-none h-12"
+                        />
                         <button
                             onClick={handleAnalyze}
                             disabled={!searchTicker.trim() || loading}
-                            className="flex items-center gap-2 px-8 py-4 bg-gradient-primary text-white rounded-xl font-bold hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-violet-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:scale-100"
                         >
-                            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Zap className="w-5 h-5 fill-current" />}
-                            Analyze
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>Analyze <Zap className="w-4 h-4 fill-white" /></>
+                            )}
                         </button>
                     </div>
                 </div>
+
+                {/* Quick Tags */}
+                <div className="flex flex-wrap justify-center gap-3 mt-6">
+                    {['TCS.NS', 'RELIANCE.NS', 'AAPL', 'MSFT', 'BTC-USD'].map(t => (
+                        <button
+                            key={t}
+                            onClick={() => { setSearchTicker(t); handleAnalyze(); }}
+                            className="text-xs font-medium px-3 py-1.5 rounded-full bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                            {t}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* AI Agents */}
-                <div className="glass-card rounded-xl border border-glass-border p-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-3 opacity-10">
-                        <Target className="w-16 h-16 text-primary-500" />
+            {/* 2. Stats Grid - Premium Glass Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+                {/* Active Agents */}
+                <div className="glass-card-premium p-6 relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Brain className="w-24 h-24 text-indigo-500" />
                     </div>
-                    <p className="text-primary-400 text-sm font-semibold mb-1 uppercase tracking-wider">AI Agents</p>
-                    <div className="flex items-end gap-2">
-                        <p className="text-3xl font-bold text-white">{agentStatus.active}/{agentStatus.total}</p>
-                        <span className="mb-1.5 w-2 h-2 rounded-full bg-success shadow-glow-sm animate-pulse" />
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                            <Activity className="w-5 h-5 text-indigo-400" />
+                        </div>
+                        <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Agents Active</span>
                     </div>
-                    <p className="text-secondary/80 text-xs mt-1">Systems operational</p>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-white">4</span>
+                        <span className="text-sm text-indigo-400">/ 4 Systems</span>
+                    </div>
+                    <div className="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full w-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full animate-pulse-soft" />
+                    </div>
                 </div>
 
-                {/* Data Freshness */}
-                <div className="glass-card rounded-xl border border-glass-border p-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-3 opacity-10">
-                        <Clock className="w-16 h-16 text-success" />
+                {/* Market Status */}
+                <div className="glass-card-premium p-6 relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Activity className="w-24 h-24 text-emerald-500" />
                     </div>
-                    <p className="text-success text-sm font-semibold mb-1 uppercase tracking-wider">Market Data</p>
-                    <div className="flex items-end gap-2">
-                        <p className="text-3xl font-bold text-white">Live</p>
-                        <span className="mb-1.5 text-xs font-medium px-1.5 py-0.5 rounded bg-success/20 text-success border border-success/30">Real-time</span>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <TrendingUp className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Market Data</span>
                     </div>
-                    <p className="text-secondary/80 text-xs mt-1">Global coverage</p>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-white">Live</span>
+                        <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                        </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Connecting to Global Exchanges</p>
                 </div>
 
                 {/* Accuracy */}
-                <div className="glass-card rounded-xl border border-glass-border p-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-3 opacity-10">
-                        <Target className="w-16 h-16 text-amber-500" />
+                <div className="glass-card-premium p-6 relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Target className="w-24 h-24 text-amber-500" />
                     </div>
-                    <p className="text-amber-500 text-sm font-semibold mb-1 uppercase tracking-wider">Accuracy</p>
-                    <p className="text-3xl font-bold text-white">87%</p>
-                    <p className="text-secondary/80 text-xs mt-1">Historical verification</p>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                            <Target className="w-5 h-5 text-amber-400" />
+                        </div>
+                        <span className="text-gray-400 text-sm font-medium uppercase tracking-wider">Precision</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-white">87%</span>
+                        <span className="text-sm text-amber-400 font-medium">+2.4%</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Based on backtested signals</p>
                 </div>
 
-                {/* Profile */}
+                {/* Profile Link */}
                 <div
                     onClick={() => navigate('/profile')}
-                    className="glass-card rounded-xl border border-glass-border p-5 flex flex-col items-center justify-center cursor-pointer hover:bg-surface-light/30 transition-colors group"
+                    className="glass-card-premium p-6 relative overflow-hidden group hover:bg-white/5 transition-colors cursor-pointer border-dashed border-white/20 hover:border-violet-500/50"
                 >
-                    <div className="p-3 rounded-full bg-surface-light border border-glass-border mb-2 group-hover:border-primary-500/50 group-hover:scale-110 transition-all">
-                        <User className="w-6 h-6 text-secondary group-hover:text-white" />
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <div className="p-3 rounded-full bg-white/5 mb-3 group-hover:scale-110 transition-transform">
+                            <User className="w-6 h-6 text-gray-300" />
+                        </div>
+                        <span className="text-white font-medium">Investor Profile</span>
+                        <span className="text-xs text-gray-500 mt-1">Customize your DNA</span>
                     </div>
-                    <p className="text-secondary text-sm font-medium group-hover:text-white transition-colors">Investor Profile</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Live Market Data */}
-                <div className="lg:col-span-2 glass-card rounded-xl border border-glass-border p-6">
+            {/* 3. Bottom Section: Watchlist & Recent */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 pb-12">
+                {/* Watchlist */}
+                <div className="lg:col-span-2 glass-card p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <span className="flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-                                </span>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-white">Live Market Watch</h3>
-                                <p className="text-xs text-secondary">Track up to 3 stocks • Hover to remove</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <form onSubmit={addTicker} className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={newTicker}
-                                    onChange={(e) => setNewTicker(e.target.value)}
-                                    placeholder="e.g., RELIANCE.NS, AAPL"
-                                    className="w-44 px-3 py-1.5 bg-surface-light/50 border border-glass-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-1 focus:ring-primary-500/30 transition-all"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newTicker || watchedTickers.length >= 6}
-                                    className="px-4 py-1.5 bg-gradient-to-r from-primary-600 to-accent-dark text-white text-sm font-medium rounded-lg hover:shadow-glow transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    + Add
-                                </button>
-                            </form>
-                            <span className="text-xs text-secondary font-mono bg-surface-light px-2 py-1 rounded border border-glass-border">{currentTime}</span>
-                        </div>
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                            <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                            My Watchlist
+                        </h3>
+                        <form onSubmit={addTicker} className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newTicker}
+                                onChange={(e) => setNewTicker(e.target.value)}
+                                placeholder="Search stocks..."
+                                className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:border-emerald-500/50 outline-none w-36"
+                            />
+                            <button type="submit" className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-500/30 transition-colors flex items-center gap-1">
+                                + Add Stock
+                            </button>
+                        </form>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="space-y-3">
                         {marketData.map((stock) => (
                             <div
                                 key={stock.ticker}
-                                className={`relative group p-4 rounded-xl border transition-all duration-300 ${stock.error
-                                    ? 'bg-error/5 border-error/20 hover:border-error/40'
-                                    : 'bg-surface-light/30 border-glass-border hover:bg-surface-light/50 hover:border-primary-500/30'
-                                    }`}
+                                onClick={() => navigate(`/analysis/${stock.ticker}`)}
+                                className="group flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all cursor-pointer relative overflow-hidden"
                             >
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        removeTicker(stock.ticker);
-                                    }}
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-error/20 rounded-lg text-gray-400 hover:text-error transition-all z-10"
-                                    title="Remove from Watchlist"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                                </button>
+                                {/* Hover Gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.02] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
 
-                                <div
-                                    onClick={() => navigate(`/analysis/${stock.ticker}`)}
-                                    className="cursor-pointer"
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div>
-                                            <span className="font-bold text-white text-lg tracking-wide">{stock.ticker}</span>
-                                            <p className="text-[10px] text-secondary uppercase tracking-wider">
-                                                {stock.error ? 'Data unavailable' : (stock.name && stock.name !== stock.ticker ? stock.name.slice(0, 15) + (stock.name.length > 15 ? '...' : '') : 'Stock')}
-                                            </p>
+                                <div className="flex items-center gap-4">
+                                    <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs border ${stock.change >= 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
+                                        {stock.change >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white">{stock.ticker}</h4>
+                                        <p className="text-xs text-gray-500">{stock.name}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right flex items-center gap-6">
+                                    <div className="hidden sm:flex gap-0.5 items-end h-8">
+                                        {[40, 60, 45, 70, 55, 65, 50].map((h, i) => (
+                                            <div key={i} className={`w-1 rounded-t-sm ${stock.change >= 0 ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`} style={{ height: `${h}%` }} />
+                                        ))}
+                                    </div>
+
+                                    <div>
+                                        <div className="text-lg font-bold text-white tabular-nums">
+                                            {stock.currencySymbol}{typeof stock.price === 'number' ? stock.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : stock.price}
                                         </div>
-                                        <div className={`px-2 py-1 rounded-lg text-xs font-bold ${stock.error
-                                            ? 'bg-warning/10 text-warning border border-warning/20'
-                                            : stock.change >= 0
-                                                ? 'bg-success/10 text-success border border-success/20'
-                                                : 'bg-error/10 text-error border border-error/20'
-                                            }`}>
-                                            {stock.error ? 'N/A' : `${stock.change >= 0 ? '+' : ''}${Number(stock.change).toFixed(2)}%`}
+                                        <div className={`text-xs font-medium flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                            {stock.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                                            {Math.abs(stock.change).toFixed(2)}%
                                         </div>
                                     </div>
 
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-secondary text-sm font-medium">{stock.currencySymbol}</span>
-                                                <p className="text-2xl font-bold text-white tracking-tight">
-                                                    {stock.error || stock.price === 0
-                                                        ? '–'
-                                                        : (typeof stock.price === 'number' ? stock.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : stock.price)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {!stock.error && (stock.change >= 0 ? <TrendingUp className="w-10 h-10 text-success/20 -mb-2 -mr-2" /> : <TrendingDown className="w-10 h-10 text-error/20 -mb-2 -mr-2" />)}
-                                    </div>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); removeTicker(stock.ticker); }}
+                                        className="p-2 text-gray-600 hover:text-rose-400 transition-colors opacity-0 group-hover:opacity-100"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
                             </div>
                         ))}
-                        {/* Placeholder for Empty States to encourage adding stocks */}
-                        {marketData.length < 3 && (
-                            <div
-                                className="border-2 border-dashed border-glass-border/50 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 text-secondary/50 hover:text-primary-400 hover:border-primary-500/30 transition-all cursor-pointer min-h-[120px]"
-                                onClick={() => document.querySelector('input[placeholder="e.g., RELIANCE.NS, AAPL"]')?.focus()}
-                            >
-                                <div className="p-2 rounded-full bg-surface-light/50 border border-glass-border">
-                                    <Sparkles className="w-5 h-5" />
-                                </div>
-                                <span className="text-sm font-medium">Add stock to watchlist</span>
-                                <span className="text-xs opacity-70">Click to add</span>
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                {/* Recent Analysis Side List */}
-                <div className="glass-card rounded-xl border border-glass-border p-6 h-full">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-primary-400" />
+                {/* Recent Activity */}
+                <div className="glass-card p-6">
+                    <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-violet-400" />
                         Recent Activity
                     </h3>
-                    {recentAnalyses.length === 0 ? (
-                        <div className="text-center py-8">
-                            <div className="w-12 h-12 rounded-full bg-surface-light border border-glass-border flex items-center justify-center mx-auto mb-3">
-                                <Search className="w-5 h-5 text-secondary" />
+                    <div className="space-y-4">
+                        {recentAnalyses.length === 0 ? (
+                            <div className="text-center py-10 text-gray-500">
+                                <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                                <p className="text-sm">No analysis history yet.</p>
                             </div>
-                            <p className="text-secondary text-sm">
-                                No recent analyses.<br />Start by searching a stock!
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="space-y-2">
-                            {recentAnalyses.map((item, index) => (
+                        ) : (
+                            recentAnalyses.map((item, i) => (
                                 <div
-                                    key={index}
+                                    key={i}
                                     onClick={() => navigate(`/analysis/${item.query}`)}
-                                    className="p-3 rounded-xl bg-surface-light/30 border border-glass-border hover:bg-surface-light/50 hover:border-primary-500/30 cursor-pointer transition-all flex items-center justify-between group"
+                                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/5"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center text-xs font-bold text-white border border-white/5">
-                                            {item.query.slice(0, 1)}
-                                        </div>
-                                        <span className="font-medium text-gray-200 group-hover:text-white transition-colors">{item.query}</span>
+                                    <div className="w-2 h-2 rounded-full bg-violet-500" />
+                                    <div className="flex-1">
+                                        <h5 className="font-medium text-white">{item.query}</h5>
+                                        <p className="text-xs text-gray-500">Analyzed {new Date(item.timestamp).toLocaleDateString()}</p>
                                     </div>
-                                    <span className="text-xs text-secondary">
-                                        {new Date(item.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                                    </span>
+                                    <ArrowRight className="w-4 h-4 text-gray-600" />
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

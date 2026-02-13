@@ -16,9 +16,12 @@ router = APIRouter(prefix="/api/v1/profile", tags=["profile"])
 class ProfileUpdate(BaseModel):
     risk_tolerance: Optional[str] = None
     time_horizon: Optional[int] = None
+    investment_horizon: Optional[str] = None  # "0-1 year", "1-3 years", "3-5 years", "5+ years"
     investment_goals: Optional[List[str]] = None
     sectors: Optional[List[str]] = None
+    ethical_filters: Optional[List[str]] = None  # ["No Tobacco", "No Alcohol", etc.]
     custom_rules: Optional[List[str]] = None
+
 
 
 @router.get("/me")
@@ -35,6 +38,13 @@ def update_profile(
     db: Session = Depends(get_db)
 ):
     """Update current user's investor profile."""
+    # Handle guest/unauthenticated users
+    if user_id == "default":
+        raise HTTPException(
+            status_code=401, 
+            detail="Please login to save your Investor DNA profile"
+        )
+    
     try:
         user_id_int = int(user_id)
     except ValueError:

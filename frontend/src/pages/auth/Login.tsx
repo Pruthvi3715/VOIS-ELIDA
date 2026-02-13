@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, User, Loader2, AlertCircle, Cpu, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Login: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -19,18 +20,13 @@ const Login: React.FC = () => {
         setLoading(true);
 
         try {
-            // Fixed: Use /api/auth/login with JSON body instead of /api/auth/token
             const response = await axios.post('http://localhost:8000/api/auth/login', {
-                username: email.split('@')[0], // Backend expects username, not email
+                username: username,
                 password: password
             });
 
             const { access_token, user_id } = response.data;
-
-            // We need user details, but token response only gives ID. 
-            // For now, construct a basic user object or fetch profile.
-            // Assuming successful login implies valid user.
-            login(access_token, { id: user_id, email: email, username: email.split('@')[0] });
+            login(access_token, { id: user_id, email: '', username: username });
             navigate('/');
         } catch (err: any) {
             console.error(err);
@@ -40,72 +36,266 @@ const Login: React.FC = () => {
         }
     };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-            {/* Background blobs */}
-            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px]" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px]" />
+    const handleDemoLogin = async () => {
+        setUsername('demo');
+        setPassword('demo123');
+        setError('');
+        setLoading(true);
 
-            <div className="w-full max-w-md p-8 rounded-2xl bg-surface/50 backdrop-blur-xl border border-white/10 shadow-2xl relative z-10 transition-all duration-300 hover:border-primary/30">
+        try {
+            const response = await axios.post('http://localhost:8000/api/auth/login', {
+                username: 'demo',
+                password: 'demo123'
+            });
+
+            const { access_token, user_id } = response.data;
+            login(access_token, { id: user_id, email: '', username: 'demo' });
+            navigate('/');
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.detail || 'Demo login failed. Please try manual login.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div
+            className="min-h-screen flex items-center justify-center relative overflow-hidden"
+            style={{ background: '#0f0f12' }}
+        >
+            {/* Animated background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div
+                    className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(108, 92, 231, 0.25) 0%, transparent 70%)',
+                        filter: 'blur(60px)',
+                        animation: 'pulse 3s ease-in-out infinite',
+                    }}
+                />
+                <div
+                    className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(0, 217, 255, 0.2) 0%, transparent 70%)',
+                        filter: 'blur(60px)',
+                        animation: 'pulse 3s ease-in-out infinite 1s',
+                    }}
+                />
+            </div>
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="relative z-10 w-full max-w-md mx-4"
+            >
+                {/* Logo */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mb-2">Welcome Back</h1>
-                    <p className="text-secondary">Sign in to access your portfolio</p>
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="inline-flex items-center justify-center mb-6"
+                    >
+                        <div
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(135deg, #6c5ce7 0%, #a855f7 100%)',
+                                boxShadow: '0 0 40px rgba(108, 92, 231, 0.5)',
+                            }}
+                        >
+                            <Cpu className="w-8 h-8 text-white" />
+                        </div>
+                    </motion.div>
+
+                    <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+                    <p style={{ color: '#9ca3af' }}>Sign in to access your dashboard</p>
                 </div>
 
-                {error && (
-                    <div className="mb-4 p-3 bg-error/10 border border-error/20 rounded-lg flex items-center gap-2 text-error text-sm">
-                        <AlertCircle size={16} />
-                        <span>{error}</span>
-                    </div>
-                )}
+                {/* Form Card */}
+                <div
+                    className="rounded-2xl p-8"
+                    style={{
+                        background: '#18181c',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)'
+                    }}
+                >
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 rounded-xl flex items-center gap-3"
+                            style={{
+                                background: 'rgba(255, 71, 87, 0.1)',
+                                border: '1px solid rgba(255, 71, 87, 0.2)'
+                            }}
+                        >
+                            <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: '#ff4757' }} />
+                            <span className="text-sm" style={{ color: '#ff4757' }}>{error}</span>
+                        </motion.div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-secondary ml-1">Email</label>
-                        <div className="relative group">
-                            <Mail className="absolute left-3 top-3 text-secondary group-focus-within:text-primary transition-colors" size={20} />
-                            <input
-                                type="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-background/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-gray-600"
-                                placeholder="Ex. john@doe.com"
-                            />
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium block ml-1"
+                                style={{ color: '#9ca3af' }}
+                            >
+                                Username
+                            </label>
+                            <div className="relative">
+                                <User
+                                    className="absolute left-4 top-1/2 w-5 h-5"
+                                    style={{ transform: 'translateY(-50%)', color: '#9ca3af' }}
+                                />
+                                <input
+                                    type="text"
+                                    required
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full rounded-xl text-white"
+                                    placeholder="Enter your username"
+                                    style={{
+                                        background: '#222228',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        padding: '14px 16px 14px 48px',
+                                        outline: 'none',
+                                        fontSize: '16px',
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = 'rgba(108, 92, 231, 0.5)';
+                                        e.target.style.boxShadow = '0 0 0 3px rgba(108, 92, 231, 0.2)';
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                        e.target.style.boxShadow = 'none';
+                                    }}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-secondary ml-1">Password</label>
-                        <div className="relative group">
-                            <Lock className="absolute left-3 top-3 text-secondary group-focus-within:text-primary transition-colors" size={20} />
-                            <input
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-background/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-gray-600"
-                                placeholder="••••••••"
-                            />
+                        <div className="space-y-2">
+                            <label
+                                className="text-sm font-medium block ml-1"
+                                style={{ color: '#9ca3af' }}
+                            >
+                                Password
+                            </label>
+                            <div className="relative">
+                                <Lock
+                                    className="absolute left-4 top-1/2 w-5 h-5"
+                                    style={{ transform: 'translateY(-50%)', color: '#9ca3af' }}
+                                />
+                                <input
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full rounded-xl text-white"
+                                    placeholder="Enter your password"
+                                    style={{
+                                        background: '#222228',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        padding: '14px 16px 14px 48px',
+                                        outline: 'none',
+                                        fontSize: '16px',
+                                    }}
+                                    onFocus={(e) => {
+                                        e.target.style.borderColor = 'rgba(108, 92, 231, 0.5)';
+                                        e.target.style.boxShadow = '0 0 0 3px rgba(108, 92, 231, 0.2)';
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                                        e.target.style.boxShadow = 'none';
+                                    }}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full flex items-center justify-center gap-2 font-semibold rounded-xl text-white"
+                            style={{
+                                background: 'linear-gradient(135deg, #6c5ce7 0%, #a855f7 100%)',
+                                padding: '14px 24px',
+                                boxShadow: '0 4px 20px rgba(108, 92, 231, 0.4)',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                opacity: loading ? 0.5 : 1,
+                                transition: 'all 0.3s ease',
+                            }}
+                        >
+                            {loading ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Sign In
+                                    <ArrowRight className="w-5 h-5" />
+                                </>
+                            )}
+                        </button>
 
-                <p className="mt-6 text-center text-secondary text-sm">
+                        {/* Demo Login Button */}
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs">
+                                <span style={{ background: '#18181c', padding: '0 12px', color: '#6b7280' }}>
+                                    OR
+                                </span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleDemoLogin}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center gap-2 font-medium rounded-xl transition-all"
+                            style={{
+                                background: 'rgba(108, 92, 231, 0.1)',
+                                border: '1px solid rgba(108, 92, 231, 0.3)',
+                                padding: '14px 24px',
+                                color: '#c4b5fd',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                opacity: loading ? 0.5 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!loading) {
+                                    e.currentTarget.style.background = 'rgba(108, 92, 231, 0.2)';
+                                    e.currentTarget.style.borderColor = 'rgba(108, 92, 231, 0.5)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(108, 92, 231, 0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(108, 92, 231, 0.3)';
+                            }}
+                        >
+                            <Cpu className="w-5 h-5" />
+                            Try Demo Account
+                        </button>
+                    </form>
+                </div>
+
+                {/* Register link */}
+                <p className="mt-6 text-center text-sm" style={{ color: '#9ca3af' }}>
                     Don't have an account?{' '}
-                    <Link to="/register" className="text-primary hover:text-accent font-medium transition-colors">
+                    <Link
+                        to="/register"
+                        className="font-medium hover:underline"
+                        style={{ color: '#c4b5fd' }}
+                    >
                         Create one
                     </Link>
                 </p>
-            </div>
+
+                {/* Demo hint */}
+                <p className="mt-4 text-center text-xs" style={{ color: '#6b7280' }}>
+                    Try demo: <span style={{ color: '#9ca3af' }}>demo / demo123</span>
+                </p>
+            </motion.div>
         </div>
     );
 };

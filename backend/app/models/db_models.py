@@ -2,7 +2,7 @@
 Database models for ELIDA - Users, Profiles, and History.
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text, JSON
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text, JSON, Index
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -31,13 +31,16 @@ class InvestorProfile(Base):
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
     risk_tolerance = Column(String(20), default="moderate")  # conservative, moderate, aggressive
     time_horizon = Column(Integer, default=5)  # years
+    investment_horizon = Column(String(20), default="3-5 years")  # UI-friendly format
     investment_goals = Column(JSON, default=list)  # ["growth", "income", "preservation"]
     sectors = Column(JSON, default=list)  # ["technology", "healthcare", etc.]
+    ethical_filters = Column(JSON, default=list)  # ["No Tobacco", "No Alcohol", etc.]
     custom_rules = Column(JSON, default=list)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     user = relationship("User", back_populates="profile")
+
 
 
 class AnalysisHistory(Base):
@@ -53,6 +56,10 @@ class AnalysisHistory(Base):
     
     # Relationships
     user = relationship("User", back_populates="history")
+    
+    __table_args__ = (
+        Index('idx_user_history', 'user_id', 'created_at'),
+    )
 
 
 class PortfolioRequest(Base):

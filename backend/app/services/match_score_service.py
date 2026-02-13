@@ -59,8 +59,14 @@ class MatchScoreService:
         risk_score = self._get_risk_score(agent_results.get("regret", {}))
         dna_match_score = self._calculate_dna_match(financials, technicals, investor_dna)
         
+        # DEBUG LOGGING
+        print(f"DEBUG: Checking ethical filters for {financials.get('symbol')}")
+        print(f"DEBUG: Sector: {financials.get('sector')}, Industry: {financials.get('industry')}")
+        print(f"DEBUG: DNA prevent tobacco: {investor_dna.exclude_tobacco}")
+        
         # Check for ethical violations
         ethical_violation = self._check_ethical_filters(financials, investor_dna)
+        print(f"DEBUG: Violation found: {ethical_violation}")
         if ethical_violation:
             dna_match_score = max(0, dna_match_score - 50)  # Heavy penalty
         
@@ -109,7 +115,14 @@ class MatchScoreService:
         return float(quant_result.get("score", 50))
     
     def _get_macro_score(self, macro_result: Dict) -> float:
-        """Convert macro trend to score."""
+        """Extract macro score from agent output, fallback to trend mapping."""
+        # Prefer the numeric score computed by the agent
+        if "output" in macro_result:
+            score = macro_result.get("output", {}).get("score")
+            if score is not None:
+                return float(score)
+        
+        # Fallback to trend-based mapping
         if "output" in macro_result:
             trend = macro_result.get("output", {}).get("trend", "Neutral")
         else:
@@ -124,33 +137,46 @@ class MatchScoreService:
         return trend_scores.get(trend, 50)
     
     def _get_philosophy_score(self, phil_result: Dict) -> float:
-        """Convert philosophy alignment to score."""
+        """Extract philosophy score from agent output, fallback to alignment mapping."""
+        # Prefer the numeric score computed by the agent
+        if "output" in phil_result:
+            score = phil_result.get("output", {}).get("score")
+            if score is not None:
+                return float(score)
+        
+        # Fallback to alignment-based mapping
         if "output" in phil_result:
             alignment = phil_result.get("output", {}).get("alignment", "Medium")
         else:
             alignment = phil_result.get("alignment_score", "Medium")
         
         alignment_scores = {
-            "High": 85,
-            "Medium": 55,
+            "High": 80,
+            "Medium": 50,
             "Low": 25
         }
-        return alignment_scores.get(alignment, 55)
+        return alignment_scores.get(alignment, 50)
     
     def _get_risk_score(self, regret_result: Dict) -> float:
-        """Convert risk level to inverted score (lower risk = higher score)."""
+        """Extract risk score from agent output, fallback to risk level mapping."""
+        # Prefer the numeric score computed by the agent
+        if "output" in regret_result:
+            score = regret_result.get("output", {}).get("score")
+            if score is not None:
+                return float(score)
+        
+        # Fallback to risk-level-based mapping (inverted: low risk = high score)
         if "output" in regret_result:
             risk_level = regret_result.get("output", {}).get("risk_level", "Medium")
         else:
             risk_level = regret_result.get("risk_level", "Medium")
         
-        # Inverted: low risk = high score
         risk_scores = {
-            "Low": 85,
-            "Medium": 55,
+            "Low": 80,
+            "Medium": 50,
             "High": 25
         }
-        return risk_scores.get(risk_level, 55)
+        return risk_scores.get(risk_level, 50)
     
     def _calculate_dna_match(
         self,
@@ -159,31 +185,31 @@ class MatchScoreService:
         dna: InvestorDNA
     ) -> float:
         """Calculate how well asset matches investor DNA."""
-        score = 70  # Start with baseline
+        score = 50  # Start Neutral (was 70)
         
         # Check P/E against preference
         pe = financials.get("pe_ratio")
         if pe and dna.max_pe_ratio:
             if pe <= dna.max_pe_ratio:
-                score += 10
+                score += 15
             else:
-                score -= 15
+                score -= 20
         
         # Check dividend yield
         div_yield = financials.get("dividend_yield", 0)
         if dna.min_dividend_yield and div_yield:
             if div_yield >= dna.min_dividend_yield:
-                score += 10
+                score += 15
             else:
-                score -= 5
+                score -= 10
         
         # Check profitability preference
         margins = financials.get("profit_margins")
-        if dna.prefer_profitable and margins:
+        if dna.prefer_profitable and margins is not None:
             if margins > 0:
-                score += 10
+                score += 15
             else:
-                score -= 15
+                score -= 25  # Heavy penalty for unprofitable if user explicitly prefers profit
         
         # Check market cap preference
         market_cap = str(financials.get("market_cap", ""))
@@ -202,44 +228,43 @@ class MatchScoreService:
         # Check 52-week high preference
         if dna.avoid_52w_highs:
             pct_from_high = technicals.get("pct_from_52w_high", 0)
-            if pct_from_high and pct_from_high < -5:
-                score += 10  # Not at high
-            elif pct_from_high and pct_from_high >= -2:
-                score -= 10  # Near high
+            if pct_from_high and pct_from_high < -10:
+                score += 10  # Well below high
+            elif pct_from_high and pct_from_high >= -5:
+                score -= 15  # Near high
         
         # Check oversold preference
         if dna.prefer_oversold:
             rsi = technicals.get("rsi_14", 50)
-            if rsi and rsi < 30:
-                score += 15  # Oversold
-            elif rsi and rsi > 70:
-                score -= 10  # Overbought
+            if rsi and rsi < 35:
+                score += 20  # Oversold
+            elif rsi and rsi > 65:
+                score -= 15  # Overbought
         
         # Check risk tolerance alignment
         volatility = technicals.get("volatility_raw", 0.2)
         if volatility:
             if dna.risk_tolerance == RiskTolerance.CONSERVATIVE:
                 if volatility > 0.25:
-                    score -= 20  # Too volatile
+                    score -= 25  # Too volatile
                 else:
                     score += 10
             elif dna.risk_tolerance == RiskTolerance.AGGRESSIVE:
                 if volatility > 0.30:
-                    score += 5  # Aggressive likes volatility
+                    score += 15  # Aggressive likes volatility
         
         # Investment style alignment
-        roe = financials.get("return_on_equity", 0)
         revenue_growth = financials.get("revenue_growth", 0)
         
         if dna.investment_style == InvestmentStyle.VALUE:
             if pe and pe < 15:
-                score += 10
+                score += 15
         elif dna.investment_style == InvestmentStyle.GROWTH:
             if revenue_growth and revenue_growth > 0.15:
-                score += 10
+                score += 15
         elif dna.investment_style == InvestmentStyle.DIVIDEND:
             if div_yield and div_yield > 2:
-                score += 15
+                score += 20
         
         return max(0, min(100, score))
     
@@ -355,32 +380,30 @@ class MatchScoreService:
         if ethical_violation:
             return ("Avoid", "Exit", "Avoid")
         
-        # Based on score and risk tolerance
+        # Recommendations (More decisive thresholds)
         if dna.risk_tolerance == RiskTolerance.CONSERVATIVE:
-            if score >= 75:
+            if score >= 65:
                 return ("Buy", "Hold", "Buy")
-            elif score >= 60:
+            elif score >= 50:
                 return ("Hold", "Hold", "Wait")
             else:
                 return ("Avoid", "Reduce", "Avoid")
         
         elif dna.risk_tolerance == RiskTolerance.MODERATE:
-            if score >= 70:
+            if score >= 60:
                 return ("Buy", "Hold", "Buy")
-            elif score >= 50:
+            elif score >= 40:
                 return ("Hold", "Hold", "Wait")
-            elif score >= 35:
-                return ("Don't Add", "Hold", "Don't Add")
             else:
                 return ("Avoid", "Reduce", "Avoid")
         
         else:  # AGGRESSIVE
-            if score >= 65:
+            if score >= 55:
                 return ("Buy", "Add More", "Buy")
-            elif score >= 45:
+            elif score >= 35:
                 return ("Hold", "Hold", "Consider")
             else:
-                return ("Don't Add", "Hold", "Don't Add")
+                return ("Don't Add", "Reduce", "Avoid")
     
     def _generate_summary(
         self,

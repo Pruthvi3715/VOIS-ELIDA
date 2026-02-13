@@ -63,40 +63,26 @@ class MacroAgent(BaseAgent):
         - DXY / Currency: Broader economic context.
         - Fed Policy: Rate expectations and impact."""
         
-        prompt = f"""
-        You are the Global Macroeconomic Analysis Agent.
+        prompt = f"""Analyze macro environment for {region} markets. Return JSON only.
 
-        ROLE:
-        Provide a DETAILED analysis of the market environment. Don't just list indicators; explain their INTERCONNECTION and IMPACT.
-        
-        REGION: {region} ({"Indian Stock Exchange" if region == "INDIA" else "US Markets"})
-        {indicators_section}
+REGION: {region}
+DATA:
+{context_str if context_str else "No macro data available"}
 
-        OUTPUT FORMAT (STRICT JSON):
-        {{
-            "trend": "<Bullish|Bearish|Neutral>",
-            "confidence": <0-100>,
-            "indicators_analyzed": [
-                {{"name": "indicator", "value": "EXACT VALUE", "signal": "positive/negative/neutral", "impact": "Detailed explanation of impact"}}
-            ],
-            "macro_risks": ["Detailed sentence describing specific risk"],
-            "macro_tailwinds": ["Detailed sentence describing positive factor"],
-            "reasoning": "DETAILED SYNTHESIS: Write 3 paragraphs. 1) Current Regime for {region} markets. 2) Impact on this asset class. 3) Forward outlook. CITE ALL VALUES."
-        }}
+OUTPUT FORMAT:
+{{
+    "trend": "Bullish|Bearish|Neutral",
+    "confidence": 0-100,
+    "reasoning": "2-3 sentences citing specific indicator values (VIX, rates, etc.)",
+    "macro_risks": ["1-2 specific risks"],
+    "macro_tailwinds": ["1-2 positive factors"]
+}}
 
-        RULES:
-        1. QUANTIFY EVERYTHING. Don't say "High VIX", say "VIX at 28.5 indicates extreme fear".
-        2. CONNECT THE DOTS. How do rates/policy affect THIS asset's valuation?
-        3. NO VAGUE STATEMENTS. "Market is good" is forbidden.
-        4. REGION FOCUS: Prioritize {region} indicators for this {region} stock.
-
-        CONTEXT (Retrieved from RAG):
-        {context_str if context_str else "No macro data available in context."}
-        """
+For {region} stocks, focus on {"India VIX, RBI rates, Nifty trend" if region == "INDIA" else "VIX, Fed policy, S&P 500 trend"}."""
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt=f"You are a Macro Strategist specializing in {region} markets. Output valid JSON. Be precise about indicators.",
+            system_prompt=self.get_guardrail_system_prompt(f"You are a Macro Strategist specializing in {region} markets. Output valid JSON. Be precise about indicators. Only cite indicators that are present in the data."),
             fallback_func=self._rule_based_macro,
             fallback_args=macro_data
         )
@@ -113,8 +99,15 @@ class MacroAgent(BaseAgent):
             if parsed["trend"] != "Neutral":
                 parsed["trend"] = "Neutral"  # Force neutral on low data
         
+        # Derive numeric score from trend
+        trend_scores = {"Bullish": 75, "Neutral": 50, "Bearish": 30}
+        score = trend_scores.get(parsed["trend"], 50)
+        # Adjust score based on confidence
+        score = int(score * (0.7 + 0.3 * parsed["confidence"] / 100))
+        
         return self.format_output(
             output_data={
+                "score": score,
                 "trend": parsed["trend"],
                 "indicators_analyzed": parsed.get("indicators_analyzed", []),
                 "macro_risks": parsed.get("macro_risks", []),

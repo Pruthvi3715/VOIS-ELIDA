@@ -1,0 +1,72 @@
+{
+  "orchestration_id": "demo_hdfc",
+  "asset_id": "HDFCBANK.NS",
+  "match_score": 78,
+  "match_result": {
+    "score": 78,
+    "recommendation": "BUY",
+    "action_if_owned": "HOLD - Core banking position",
+    "action_if_not_owned": "BUY - Best private bank at attractive valuation",
+    "fit_reasons": [
+      "Market leader in private banking",
+      "Best-in-class asset quality with 1.2% GNPA",
+      "Post-merger synergies to drive growth",
+      "Trading below historical valuation"
+    ],
+    "concern_reasons": [
+      "Merger integration still ongoing",
+      "NIM pressure from deposit competition",
+      "Large size limits growth rate"
+    ],
+    "summary": "HDFC Bank remains India's premier private bank. Post-merger, it offers compelling value at current valuations.",
+    "breakdown": {
+      "fundamental": 82,
+      "macro": 75,
+      "philosophy": 80,
+      "risk": 76,
+      "dna_match": 78
+    }
+  },
+  "coach_verdict": {
+    "verdict": "BUY",
+    "confidence": 78,
+    "summary": "HDFC Bank is a compounding machine trading at attractive valuations post-merger. Best risk-adjusted way to play India's financialization theme."
+  },
+  "results": {
+    "quant": {
+      "score": 82,
+      "analysis": "ROE of 16.5% (improving post-merger). NIM at 3.5%. Loan growth of 15%+. Cost-to-income ratio improving to 40%. Asset quality remains pristine.",
+      "sentiment": "positive"
+    },
+    "macro": {
+      "trend": "bullish",
+      "analysis": "Credit growth environment supportive. Rate cycle peak provides NIM stability. Housing finance integration adds mortgage growth runway.",
+      "sentiment": "positive"
+    },
+    "philosopher": {
+      "alignment_score": 80,
+      "analysis": "Gold standard in Indian banking governance. Conservative underwriting culture maintained. Management succession well handled.",
+      "sentiment": "positive"
+    },
+    "regret": {
+      "risk_level": "LOW",
+      "analysis": "Downside limited to 20% in stress. Strong capital buffers. Main risk is merger integration delays or deposit market share loss.",
+      "sentiment": "neutral"
+    }
+  },
+  "market_data": {
+    "price": 1725.5,
+    "change": 0.32,
+    "volume": 8500000,
+    "high52w": 1795.0,
+    "low52w": 1420.0,
+    "pe_ratio": 19.2,
+    "market_cap": "13.1T",
+    "currency": "INR"
+  },
+  "ticker_resolution": {
+    "original": "HDFCBANK.NS",
+    "resolved": "HDFCBANK.NS",
+    "source": "exact"
+  }
+}

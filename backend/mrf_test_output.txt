@@ -1,0 +1,116 @@
+﻿RAG Service: [OK] Successfully loaded sentence-transformers.
+RAG Service: Loaded 723 existing document hashes.
+============================================================
+TESTING: MRF.NS
+============================================================
+12:12:19 [[32mINFO[0m] elida.orchestrator: Starting ingestion for MRF.NS
+RAG Service: Deleted 11 documents for MRF.NS.
+RAG Service: Skipping duplicate document (type: macro)
+RAG Service: Added 7 documents.
+12:12:20 [[32mINFO[0m] elida.orchestrator: Ingestion complete for MRF.NS
+Ingest: success
+12:12:20 [[32mINFO[0m] elida.orchestrator: Retrieving context for MRF.NS...
+RAG Service: Query 'Financial analysis of MRF.NS...' returned 7 results.
+RAG Service: Query 'macro economic indicators inte...' returned 3 results.
+12:12:20 [[32mINFO[0m] elida.orchestrator: Injected 6 cached data types for MRF.NS
+12:12:20 [[32mINFO[0m] elida.orchestrator: Invoking agents in PARALLEL...
+12:12:40 [[32mINFO[0m] elida.agents.base: [Macro Agent] [OK] OpenRouter Response
+12:12:40 [[32mINFO[0m] elida.orchestrator: [OK] Agent MACRO completed
+12:12:44 [[32mINFO[0m] elida.agents.base: [Quant Agent] [OK] OpenRouter Response
+12:12:44 [[32mINFO[0m] elida.orchestrator: [OK] Agent QUANT completed
+12:12:52 [[32mINFO[0m] elida.agents.base: [Philosopher Agent] [OK] OpenRouter Response
+12:12:52 [[32mINFO[0m] elida.orchestrator: [OK] Agent PHILOSOPHER completed
+12:12:54 [[32mINFO[0m] elida.agents.base: [Regret Simulation Agent] [OK] OpenRouter Response
+12:12:54 [[32mINFO[0m] elida.orchestrator: [OK] Agent REGRET completed
+12:12:54 [[32mINFO[0m] elida.orchestrator: Agent analysis completed in 33.35 seconds (parallel)
+12:12:54 [[32mINFO[0m] elida.orchestrator: Calculating Match Score...
+DEBUG: Checking ethical filters for MRF.NS
+DEBUG: Sector: Consumer Cyclical, Industry: Auto Parts
+DEBUG: DNA prevent tobacco: False
+DEBUG: Violation found: None
+12:12:54 [[32mINFO[0m] elida.orchestrator: Match Score = 47%
+RAG Service: Added 4 documents.
+RAG Service: Query 'Analysis of MRF.NS...' returned 10 results.
+12:12:54 [[32mINFO[0m] elida.orchestrator: Invoking Coach for final synthesis...
+12:13:12 [[32mINFO[0m] elida.agents.base: [Coach Synthesizer] [OK] OpenRouter Response
+
+============================================================
+FULL AGENT OUTPUTS:
+============================================================
+
+==================== QUANT AGENT ====================
+ANALYSIS TEXT:
+MRF.NS has a high P/E ratio of 28.26 and an extremely high debt-to-equity ratio of 18.68, which is anomalous and indicates severe leverage risk. Revenue growth is solid at 15% and ROCE is 13.8%, but ROE is missing, and earnings growth of 119.3% is suspiciously high compared to revenue growth, adding significant uncertainty.
+
+STRUCTURED OUTPUT:
+  Score: 35
+  Trend: N/A
+  Alignment: N/A
+  Risk Level: N/A
+  Strengths: ['Revenue growth of 15%', 'ROCE of 13.8%']
+  Weaknesses: ['P/E ratio of 28.26 is high', 'Debt-to-equity ratio of 18.68 is extremely high and likely anomalous', 'ROE data missing']
+  Confidence: 35
+  Data Quality: Medium
+
+==================== MACRO AGENT ====================
+ANALYSIS TEXT:
+India VIX is at 11.665 with a -4.31% change and interpreted as 'Low Volatility / Complacency', while Nifty (^NSEI) is at 25935.15, up 0.26%. RBI repo rate stands at 5.25% against inflation of 4.95%, and US interest rate proxy ^TNX decreased by 1.12%, suggesting mixed signals with low volatility but modest index gains.
+
+STRUCTURED OUTPUT:
+  Score: 45
+  Trend: Neutral
+  Alignment: N/A
+  Risk Level: N/A
+  Strengths: []
+  Weaknesses: []
+  Confidence: 70
+  Data Quality: High
+
+==================== PHILOSOPHER AGENT ====================
+ANALYSIS TEXT:
+MRF exhibits high insider ownership at 47.92% (held_percent_insiders: 0.4792), which may align management interests with shareholders, but debt-to-equity is elevated at 18.68, raising financial risk concerns. Provided data lacks information on environmental practices, social impact, and sustainable competitive advantages, limiting a comprehensive ethical assessment.
+
+STRUCTURED OUTPUT:
+  Score: 45
+  Trend: N/A
+  Alignment: Medium
+  Risk Level: N/A
+  Strengths: ['High insider ownership (47.92%) potentially enhancing governance and accountability']
+  Weaknesses: ['Debt-to-equity ratio of 18.68 suggests significant leverage and financial vulnerability', 'No disclosed environmental or social metrics in the provided data, indicating transparency gaps']
+  Confidence: 40
+  Data Quality: High
+
+==================== REGRET AGENT ====================
+ANALYSIS TEXT:
+MRF.NS exhibits high stock-specific volatility at 24.26% annualized and a PE ratio of 28.26, indicating valuation sensitivity. Earnings growth of 119.3% is anomalously high and may not be sustainable, while debt-to-equity of 18.68 appears elevated. Macro risks are muted with India VIX at 11.665 (Low Volatility), but sector cyclicality in Auto Parts poses downside if auto demand falls.
+
+STRUCTURED OUTPUT:
+  Score: 27
+  Trend: N/A
+  Alignment: N/A
+  Risk Level: High
+  Strengths: []
+  Weaknesses: ["Severe Indian auto sales slowdown (e.g., 20% decline) reduces MRF's revenue and profits, amplified by high volatility, leading to 35-40% price drawdown from current levels.", 'Earnings growth reverts to revenue growth rate (15%), causing PE contraction from 28.26 towards forward PE of 23.08 or lower, resulting in 20-25% price decline.']
+  Confidence: 75
+  Data Quality: High
+
+==================== COACH SYNTHESIZER ====================
+VERDICT: N/A
+SYNTHESIS:
+MRF's debt-to-equity ratio is anomalously high at 18.68, and earnings growth of 119.3% is suspicious compared to 15% revenue growth, indicating potential earnings quality issues. Stock volatility is elevated at 24.26% annualized, and Auto Parts sector cyclicality poses downside risks, though low India VIX at 11.665 suggests stable macro conditions....
+
+============================================================
+FINAL MATCH SCORE:
+============================================================
+Score: 47%
+Recommendation: Hold
+
+SCORE BREAKDOWN:
+  Fundamental (Quant): 35.0
+  Macro:               45.0
+  Philosophy:          45.0
+  Risk:                27.0
+  DNA Match:           85.0
+
+Fit Reasons: ['Positive price trend']
+Concerns: ['Weak fundamental metrics', 'High downside risk scenarios identified']

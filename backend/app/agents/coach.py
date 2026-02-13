@@ -29,70 +29,47 @@ class CoachAgent(BaseAgent):
         insights = [str(c.get("content")) for c in context]
         context_str = "\n---\n".join(insights) if insights else "No Agent Insights found in RAG."
         
+        # Extract asset identifier from context
+        asset_id = "Unknown"
+        for c in context:
+            content_str = str(c.get("content", ""))
+            if "Symbol:" in content_str or "ANALYZING:" in content_str:
+                symbol_match = re.search(r'Symbol:\s*(\S+)', content_str)
+                if symbol_match:
+                    asset_id = symbol_match.group(1)
+                    break
+            # Also try extracting from agent insight format
+            if "Agent:" in content_str and asset_id == "Unknown":
+                ticker_match = re.search(r'\b([A-Z]{1,5}(?:\.NS|\.BO)?)\b', content_str)
+                if ticker_match:
+                    asset_id = ticker_match.group(1)
+        
         data_quality = self.calculate_data_quality(context)
         
-        prompt = f"""
-        You are the Decision Synthesis (Coach) Agent.
+        prompt = f"""Synthesize agent insights for {asset_id} into final recommendation. Return JSON only.
 
-        ROLE:
-        Combine insights from all specialist agents into a DEFINITIVE, ACTIONABLE investment thesis.
+IMPORTANT: Only reference data, indicators, and metrics that appear in the agent insights below.
+Do NOT invent or reference any indicators, VIX levels, or metrics not explicitly mentioned by the agents.
 
-        METHODOLOGY:
-        - Weigh the Quant (Valuation) vs Macro (Timing) vs Regret (Risk).
-        - If Quant says BUY but Macro says SELL, explain the tradeoff (e.g. "Good stock, bad market").
-        - RESOLVE CONFLICTS EXPLICITLY.
+AGENT INSIGHTS:
+{context_str}
 
-        OUTPUT FORMAT (STRICT JSON):
-        {{
-            "verdict": "<Compelling one-sentence headline>",
-            "action": "<Buy|Hold|Sell>",
-            "confidence": <0-100>,
-            "position_size": "<Full|Half|Quarter|None>",
-            "agent_synthesis": [
-                {{
-                    "agent": "agent name",
-                    "signal": "<positive/neutral/negative>",
-                    "weight_applied": <0-1>,
-                    "key_insight": "Specific insight with value"
-                }}
-            ],
-            "agreements": ["Specific point of agreement"],
-            "conflicts": ["Specific conflict and how you resolved it"],
-            "key_risks": ["Top 2 critical risks"],
-            "catalysts": ["Top 2 positive triggers"],
-            "reasoning": '''
-            STRICT SYNTHESIS (FinCoT):
+OUTPUT FORMAT:
+{{
+    "verdict": "One compelling sentence summary for {asset_id}",
+    "action": "Buy|Hold|Sell",
+    "confidence": 0-100,
+    "position_size": "Full|Half|Quarter|None",
+    "reasoning": "2-3 sentences explaining why, citing ONLY agent signals present above",
+    "key_risks": ["Top 1-2 risks from agent data"],
+    "catalysts": ["Top 1-2 positive triggers from agent data"]
+}}
 
-            STEP 1: THESIS FORMULATION
-            - Core Argument: "Buy because [Catalyst] > [Risk]" or "Sell because [Risk] > [Growth]".
-            - Weighing: Quant (30%) says X, Regret (20%) says Y. Who is right?
-
-            STEP 2: CONFLICT RESOLUTION
-            - If Quant says "Cheap" but Macro says "Recession", decide based on Quality.
-            - Explicitly state: "I am overruling Macro because..."
-
-            STEP 3: EXECUTION STRATEGY
-            - Position Size: Why Half? Why Full?
-            - Entry Point: "Wait for X" or "Buy at Market"?
-
-            STEP 4: FINAL VERDICT
-            - One powerful sentence summarizing the trade.
-            '''
-        }}
-
-        RULES:
-        1. BE DIRECT. Do not waffle. "Buy if..." is okay, but "Buy" or "Hold" is better.
-        2. EXPLAIN THE 'WHY'. Why did you choose Hold over Buy?
-        3. CITE AGENTS. "Quant likes the P/E of 15, but Macro sees rate headwinds."
-        4. POSITION SIZING MATTERS. Explain why 'Half' vs 'Full'.
-
-        INPUTS (Agent Insights from RAG):
-        {context_str}
-        """
+Weigh: Quant (30%), Macro (20%), Regret (20%), Philosopher (15%). Resolve any conflicts."""
         
         response = self.call_llm(
             prompt=prompt,
-            system_prompt="You are a wise Investment Coach. Synthesize all agent inputs into a balanced recommendation. Output valid JSON.",
+            system_prompt=self.get_guardrail_system_prompt("You are a wise Investment Coach. Synthesize all agent inputs into a balanced recommendation. Output valid JSON. Only reference insights that exist in the provided agent outputs."),
             fallback_func=self._heuristic_synthesis,
             fallback_args=context
         )

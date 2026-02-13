@@ -2,6 +2,19 @@ import axios from 'axios';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+// Create axios instance with auth interceptor
+const api = axios.create({
+    baseURL: API_BASE_URL
+});
+
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 // Helper to get user ID from stored token
 export const getUserId = () => {
     const token = localStorage.getItem('token');
@@ -18,7 +31,7 @@ export const getUserId = () => {
 
 // Asset operations
 export const ingestAsset = async (assetId) => {
-    const response = await axios.post(`${API_BASE_URL}/ingest/${assetId}`);
+    const response = await api.post(`/ingest/${assetId}`);
     return response.data;
 };
 
@@ -27,41 +40,41 @@ export const retrieveContext = async (assetId, query) => {
         query: query || "investment analysis",
         asset_id: assetId
     });
-    const response = await axios.get(`${API_BASE_URL}/retrieve?${params.toString()}`);
+    const response = await api.get(`/retrieve?${params.toString()}`);
     return response.data;
 };
 
 // One-shot analyze endpoint
 export const analyzeAsset = async (assetId) => {
-    const response = await axios.get(`${API_BASE_URL}/analyze/${assetId}`);
+    const response = await api.get(`/analyze/${assetId}`);
     return response.data;
 };
 
 // History management
 export const getHistory = async (limit = 20) => {
-    const response = await axios.get(`${API_BASE_URL}/api/v1/history?limit=${limit}`);
+    const response = await api.get(`/api/v1/history?limit=${limit}`);
     return response.data;
 };
 
 // Profile management
 export const getProfile = async () => {
-    const response = await axios.get(`${API_BASE_URL}/api/v1/profile/me`);
+    const response = await api.get(`/api/v1/profile/me`);
     return response.data;
 };
 
 export const updateProfile = async (profile) => {
-    const response = await axios.post(`${API_BASE_URL}/api/v1/profile`, profile);
+    const response = await api.post(`/api/v1/profile`, profile);
     return response.data;
 };
 
 // Chat
 export const sendChat = async (query) => {
-    const response = await axios.post(`${API_BASE_URL}/chat/general`, { query });
+    const response = await api.post(`/chat/general`, { query });
     return response.data;
 };
 
 // Market data
 export const getMarketData = async (ticker) => {
-    const response = await axios.get(`${API_BASE_URL}/market-data/${ticker}`);
+    const response = await api.get(`/market-data/${ticker}`);
     return response.data;
 };
