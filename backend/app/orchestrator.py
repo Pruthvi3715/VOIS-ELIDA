@@ -13,6 +13,7 @@ from app.agents.coach import coach_agent
 from app.models.investor_dna import InvestorDNA, DEFAULT_INVESTOR_DNA
 from app.core.logging import get_logger
 from app.core.exceptions import OrchestrationException, AgentException, DataFetchException
+from app.services.score_labels import get_score_label
 
 logger = get_logger("orchestrator")
 
@@ -298,19 +299,32 @@ class FinancialOrchestrator:
             logger.info("Invoking Coach for final synthesis...")
             coach_result = coach_agent.run(coach_context)
             
+            # Enrich agent results with score labels
+            for agent_name, result in agent_results.items():
+                agent_score = result.get("score") or result.get("output", {}).get("score", 50)
+                try:
+                    agent_score = int(agent_score)
+                except (TypeError, ValueError):
+                    agent_score = 50
+                result["score_label"] = get_score_label(agent_score)
+
             return {
                 "orchestration_id": "orch_v2_match",
                 "asset_id": asset_id,
                 "global_context_count": len(global_context),
                 "coach_retrieval_count": len(coach_context),
                 
-                # Agent Results
+                # Agent Results (now with score_label)
                 "results": agent_results,
                 
-                # Match Score (NEW!)
+                # Match Score
                 "match_score": match_result.match_score,
                 "match_result": {
                     "score": match_result.match_score,
+                    "score_label": match_result.score_label,
+                    "score_grade": match_result.score_grade,
+                    "score_emoji": match_result.score_emoji,
+                    "score_color": match_result.score_color,
                     "recommendation": match_result.recommendation,
                     "action_if_owned": match_result.action_if_owned,
                     "action_if_not_owned": match_result.action_if_not_owned,

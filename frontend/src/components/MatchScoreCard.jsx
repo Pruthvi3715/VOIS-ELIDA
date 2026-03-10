@@ -20,18 +20,30 @@ function MatchScoreCard({ matchResult, assetId }) {
         breakdown = {}
     } = matchResult;
 
-    // Determine risk level based on score
+    // Determine risk level based on score — 5 tiers
     const getRiskLevel = (score) => {
-        if (score >= 70) return 'low';
-        if (score >= 50) return 'medium';
+        if (score >= 90) return 'very low';
+        if (score >= 75) return 'low';
+        if (score >= 60) return 'medium';
+        if (score >= 40) return 'elevated';
         return 'high';
     };
 
     const getConfidenceLevel = (score) => {
-        if (score >= 70) return 'high';
-        if (score >= 50) return 'medium';
-        return 'low';
+        if (score >= 90) return 'very high';
+        if (score >= 75) return 'high';
+        if (score >= 60) return 'moderate';
+        if (score >= 40) return 'low';
+        return 'very low';
     };
+
+    // Score label from API response or compute locally
+    const scoreLabel = matchResult.score_label || (
+        score >= 90 ? 'Excellent' :
+            score >= 75 ? 'Good' :
+                score >= 60 ? 'Average' :
+                    score >= 40 ? 'Below Average' : 'Poor'
+    );
 
     return (
         <div className="relative group">
@@ -175,6 +187,18 @@ function ScoreBar3D({ label, value, weight, color = 'blue' }) {
     const numValue = typeof value === 'number' ? value : 0;
     const barWidth = Math.min(100, Math.max(0, numValue));
 
+    // Score label for each bar
+    const getBarLabel = (v) => {
+        if (v >= 90) return { text: 'Excellent', color: '#10b981' };
+        if (v >= 75) return { text: 'Good', color: '#22d3ee' };
+        if (v >= 60) return { text: 'Average', color: '#f59e0b' };
+        if (v >= 40) return { text: 'Below Avg', color: '#f97316' };
+        if (v > 0) return { text: 'Poor', color: '#ef4444' };
+        return { text: '', color: '#9ca3af' };
+    };
+
+    const barLabel = getBarLabel(numValue);
+
     const colorGradients = {
         blue: 'from-blue-400 to-blue-600',
         green: 'from-green-400 to-green-600',
@@ -201,7 +225,14 @@ function ScoreBar3D({ label, value, weight, color = 'blue' }) {
             <div className="w-12 text-right text-sm font-bold text-gray-800">
                 {numValue ? Math.round(numValue) : '—'}
             </div>
-            <div className="w-12 text-right text-xs text-gray-500 font-medium">{weight}</div>
+            <div className="w-20 text-right">
+                {barLabel.text && (
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ color: barLabel.color, backgroundColor: barLabel.color + '15' }}>
+                        {barLabel.text}
+                    </span>
+                )}
+            </div>
+            <div className="w-10 text-right text-xs text-gray-500 font-medium">{weight}</div>
         </div>
     );
 }

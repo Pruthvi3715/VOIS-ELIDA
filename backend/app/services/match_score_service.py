@@ -3,6 +3,7 @@ Match Score Service
 Calculates how well an asset matches the investor's DNA profile.
 """
 from typing import Dict, Any, List, Optional
+from app.services.score_labels import get_score_label
 from app.models.investor_dna import (
     InvestorDNA, 
     MatchScoreBreakdown, 
@@ -95,10 +96,17 @@ class MatchScoreService:
             total_score, recommendation, fit_reasons, concern_reasons, investor_dna
         )
         
+        # Get score label info
+        label_info = get_score_label(total_score)
+        
         return MatchResult(
             asset_id=financials.get("symbol", "Unknown"),
             match_score=total_score,
             breakdown=breakdown,
+            score_label=label_info["label"],
+            score_grade=label_info["grade"],
+            score_emoji=label_info["emoji"],
+            score_color=label_info["color"],
             recommendation=recommendation,
             action_if_owned=action_owned,
             action_if_not_owned=action_not_owned,
@@ -380,27 +388,28 @@ class MatchScoreService:
         if ethical_violation:
             return ("Avoid", "Exit", "Avoid")
         
-        # Recommendations (More decisive thresholds)
+        # Recommendations aligned with 5-tier score labels:
+        #   Good+ (≥75) → Buy   |  Average (60-74) → Hold   |  Below Avg → Avoid
         if dna.risk_tolerance == RiskTolerance.CONSERVATIVE:
-            if score >= 65:
+            if score >= 78:
+                return ("Buy", "Hold", "Buy")
+            elif score >= 55:
+                return ("Hold", "Hold", "Wait")
+            else:
+                return ("Avoid", "Reduce", "Avoid")
+        
+        elif dna.risk_tolerance == RiskTolerance.MODERATE:
+            if score >= 72:
                 return ("Buy", "Hold", "Buy")
             elif score >= 50:
                 return ("Hold", "Hold", "Wait")
             else:
                 return ("Avoid", "Reduce", "Avoid")
         
-        elif dna.risk_tolerance == RiskTolerance.MODERATE:
-            if score >= 60:
-                return ("Buy", "Hold", "Buy")
-            elif score >= 40:
-                return ("Hold", "Hold", "Wait")
-            else:
-                return ("Avoid", "Reduce", "Avoid")
-        
         else:  # AGGRESSIVE
-            if score >= 55:
+            if score >= 65:
                 return ("Buy", "Add More", "Buy")
-            elif score >= 35:
+            elif score >= 40:
                 return ("Hold", "Hold", "Consider")
             else:
                 return ("Don't Add", "Reduce", "Avoid")

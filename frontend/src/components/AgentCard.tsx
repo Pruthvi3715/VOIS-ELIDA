@@ -33,10 +33,20 @@ const agentColors: Record<string, string> = {
     'Coach Synthesizer': 'from-indigo-500 to-violet-500',
 };
 
+// 5-tier score label utility matching backend
+const getScoreInfo = (score: number) => {
+    if (score >= 90) return { label: 'Excellent', colors: ['#10b981', '#059669'] };
+    if (score >= 75) return { label: 'Good', colors: ['#22d3ee', '#06b6d4'] };
+    if (score >= 60) return { label: 'Average', colors: ['#f59e0b', '#d97706'] };
+    if (score >= 40) return { label: 'Below Avg', colors: ['#f97316', '#ea580c'] };
+    return { label: 'Poor', colors: ['#ef4444', '#dc2626'] };
+};
+
 const ScoreGauge: React.FC<{ score: number; id: string }> = ({ score, id }) => {
     const circumference = 2 * Math.PI * 34;
     const strokeDashoffset = circumference - (score / 100) * circumference;
     const uniqueId = `gauge-${id.replace(/\s+/g, '-')}`;
+    const scoreInfo = getScoreInfo(score);
 
     return (
         <div className="relative w-20 h-20 flex-shrink-0">
@@ -66,20 +76,29 @@ const ScoreGauge: React.FC<{ score: number; id: string }> = ({ score, id }) => {
                 />
                 <defs>
                     <linearGradient id={uniqueId} x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#6366f1" />
-                        <stop offset="100%" stopColor="#8b5cf6" />
+                        <stop offset="0%" stopColor={scoreInfo.colors[0]} />
+                        <stop offset="100%" stopColor={scoreInfo.colors[1]} />
                     </linearGradient>
                 </defs>
             </svg>
-            {/* Score text */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            {/* Score text + label */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <motion.span
-                    className="text-xl font-bold text-white"
+                    className="text-lg font-bold text-white leading-none"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                 >
                     {score}
+                </motion.span>
+                <motion.span
+                    className="text-[9px] font-medium mt-0.5 leading-none"
+                    style={{ color: scoreInfo.colors[0] }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                >
+                    {scoreInfo.label}
                 </motion.span>
             </div>
         </div>

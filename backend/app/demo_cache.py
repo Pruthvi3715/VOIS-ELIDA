@@ -363,6 +363,110 @@ DEMO_ANALYSES = {
     }
 }
 
+
+# ============== PRE-CACHED COMPARISONS FOR DEMO MODE ==============
+# These provide instant comparison results with simulated loading for live demos.
+
+DEMO_COMPARISONS = {
+    ("TCS.NS", "INFY.NS"): {
+        "synthesis": {
+            "overall_winner": "TCS.NS",
+            "overall_reasoning": "TCS edges out Infosys with superior fundamentals — 45% ROE vs 31%, stronger revenue growth at 8.2%, and a more defensive balance sheet. While Infosys offers better valuation (24.8x vs 28.5x P/E) and comparable margins, TCS's scale advantage, deeper client relationships, and consistent execution give it the overall lead. Both are excellent long-term IT holdings, but TCS offers slightly better risk-adjusted returns for most investor profiles.",
+            "dimensions": {
+                "Quant": {
+                    "winner": "TCS.NS",
+                    "reason": "TCS has higher ROE (45% vs 31%), better revenue growth (8.2% vs ~5%), and stronger free cash flow generation. Infosys wins on valuation (24.8x vs 28.5x P/E) but TCS's fundamentals are superior overall."
+                },
+                "Macro": {
+                    "winner": "Tie",
+                    "reason": "Both benefit equally from IT sector tailwinds — digital transformation spending, cloud migration, and AI adoption. Currency dynamics affect both similarly as large-cap IT exporters."
+                },
+                "Philosopher": {
+                    "winner": "TCS.NS",
+                    "reason": "TCS scores 90 vs Infosys's 82 on governance and moat quality. TCS's Tata Group backing provides additional institutional trust, while Infosys's Nilekani-led governance is also strong but marginally behind."
+                },
+                "Regret": {
+                    "winner": "Tie",
+                    "reason": "Both carry LOW risk with similar downside profiles (15-20%). TCS has marginally better balance sheet strength, but Infosys's lower valuation provides a cushion. Net risk is comparable."
+                }
+            }
+        }
+    },
+    ("RELIANCE.NS", "HDFCBANK.NS"): {
+        "synthesis": {
+            "overall_winner": "HDFCBANK.NS",
+            "overall_reasoning": "HDFC Bank leads with cleaner fundamentals, better asset quality (1.2% GNPA), and a more straightforward business model. While Reliance offers diversified growth engines (Jio, Retail, O2C), the conglomerate complexity and lower ROE (8.5%) weigh against it. HDFC Bank's post-merger valuation at 19.2x P/E is attractive for India's best private bank, making it the better risk-adjusted pick for most investors.",
+            "dimensions": {
+                "Quant": {
+                    "winner": "HDFCBANK.NS",
+                    "reason": "HDFC Bank has higher ROE (16.5% vs 8.5%), better P/E (19.2x vs 26.2x), and cleaner balance sheet metrics. Reliance's diversified revenue is impressive but capital efficiency lags behind."
+                },
+                "Macro": {
+                    "winner": "HDFCBANK.NS",
+                    "reason": "Banking benefits from credit growth cycle and rate stability. Reliance faces mixed outlook — Jio/Retail are strong but O2C margins face global commodity pressure."
+                },
+                "Philosopher": {
+                    "winner": "HDFCBANK.NS",
+                    "reason": "HDFC Bank scores 80 vs Reliance's 68. HDFC Bank's conservative underwriting culture and transparent governance outshine Reliance's complex conglomerate structure and related-party transaction concerns."
+                },
+                "Regret": {
+                    "winner": "HDFCBANK.NS",
+                    "reason": "HDFC Bank's downside is limited to 20% with strong capital buffers. Reliance carries 25-30% downside risk from O2C vulnerability and execution risk on new energy investments."
+                }
+            }
+        }
+    },
+    ("TCS.NS", "RELIANCE.NS"): {
+        "synthesis": {
+            "overall_winner": "TCS.NS",
+            "overall_reasoning": "TCS dominates with a match score of 87 vs Reliance's 72. TCS wins on every fundamental metric — ROE (45% vs 8.5%), margin quality (25% vs variable), and balance sheet strength. While Reliance offers India's broadest conglomerate exposure, TCS's focused IT model delivers superior risk-adjusted returns with a STRONG BUY vs Reliance's HOLD rating.",
+            "dimensions": {
+                "Quant": {
+                    "winner": "TCS.NS",
+                    "reason": "TCS has dramatically higher ROE (45% vs 8.5%), consistent 25% operating margins, and clean balance sheet. Reliance's segment-wise margin variation (Jio 50%, Retail 8%, O2C 6%) adds complexity."
+                },
+                "Macro": {
+                    "winner": "TCS.NS",
+                    "reason": "IT sector has clearer bullish tailwinds (digital transformation, cloud, AI). Reliance faces mixed signals across its diverse segments with O2C margin headwinds."
+                },
+                "Philosopher": {
+                    "winner": "TCS.NS",
+                    "reason": "TCS scores 90 vs Reliance's 68. TCS has superior governance transparency and simpler capital allocation. Reliance's conglomerate structure and related-party transactions reduce alignment score."
+                },
+                "Regret": {
+                    "winner": "TCS.NS",
+                    "reason": "TCS's downside is capped at 15-20% with strong cash generation. Reliance carries 25-30% downside risk from commodity cycles and capex-heavy new energy bets."
+                }
+            }
+        }
+    },
+    ("INFY.NS", "HDFCBANK.NS"): {
+        "synthesis": {
+            "overall_winner": "INFY.NS",
+            "overall_reasoning": "Infosys leads with a match score of 82 vs HDFC Bank's 78. While both are quality companies, Infosys offers higher ROE (31% vs 16.5%), best-in-class IT margins (21%), and stronger sector tailwinds from digital transformation. HDFC Bank offers stability but its post-merger integration and NIM pressure create near-term headwinds.",
+            "dimensions": {
+                "Quant": {
+                    "winner": "INFY.NS",
+                    "reason": "Infosys has higher ROE (31% vs 16.5%), better operating margins (21% vs NIM-driven), and attractive FCF yield of 3.8%. HDFC Bank's post-merger metrics are still normalizing."
+                },
+                "Macro": {
+                    "winner": "Tie",
+                    "reason": "IT benefits from digital spending and cloud migration. Banking benefits from credit growth and rate cycle. Both have strong sector-specific tailwinds — call it even."
+                },
+                "Philosopher": {
+                    "winner": "INFY.NS",
+                    "reason": "Infosys scores 82 vs HDFC Bank's 80. Both have strong governance. Infosys has ESG leadership and shareholder-friendly buybacks, while HDFC Bank has conservative culture. Marginal edge to Infosys."
+                },
+                "Regret": {
+                    "winner": "Tie",
+                    "reason": "Both carry LOW risk. Infosys's downside is 15-18%, HDFC Bank's is ~20%. Both have strong balance sheets. Risk profiles are essentially comparable."
+                }
+            }
+        }
+    }
+}
+
+
 def get_demo_analysis(ticker: str):
     normalized = ticker.upper()
     if not normalized.endswith('.NS'):
@@ -374,3 +478,49 @@ def is_demo_ticker(ticker: str) -> bool:
     if not normalized.endswith('.NS'):
         normalized = f"{normalized}.NS"
     return normalized in DEMO_ANALYSES
+
+def _normalize_ticker(ticker: str) -> str:
+    """Normalize ticker to uppercase with .NS suffix."""
+    normalized = ticker.upper()
+    if not normalized.endswith('.NS'):
+        normalized = f"{normalized}.NS"
+    return normalized
+
+def get_demo_comparison(stock1: str, stock2: str):
+    """
+    Get pre-cached comparison data for a demo stock pair.
+    Checks both orderings (A vs B and B vs A).
+    Returns dict with stock1_data, stock2_data, and synthesis, or None.
+    """
+    s1 = _normalize_ticker(stock1)
+    s2 = _normalize_ticker(stock2)
+
+    # Check both orderings
+    pair = DEMO_COMPARISONS.get((s1, s2)) or DEMO_COMPARISONS.get((s2, s1))
+    if not pair:
+        return None
+
+    # Get individual stock analyses
+    data1 = DEMO_ANALYSES.get(s1)
+    data2 = DEMO_ANALYSES.get(s2)
+    if not data1 or not data2:
+        return None
+
+    # If pair was found in reverse order, flip the synthesis winners
+    found_key = (s1, s2) if (s1, s2) in DEMO_COMPARISONS else (s2, s1)
+    synthesis = pair["synthesis"]
+
+    return {
+        "stock1": s1,
+        "stock2": s2,
+        "stock1_data": data1,
+        "stock2_data": data2,
+        "synthesis": synthesis,
+        "cached": True
+    }
+
+def is_demo_comparison(stock1: str, stock2: str) -> bool:
+    """Check if a stock pair has cached comparison data."""
+    s1 = _normalize_ticker(stock1)
+    s2 = _normalize_ticker(stock2)
+    return (s1, s2) in DEMO_COMPARISONS or (s2, s1) in DEMO_COMPARISONS

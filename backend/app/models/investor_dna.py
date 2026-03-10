@@ -209,6 +209,12 @@ class MatchResult(BaseModel):
     match_score: int = Field(ge=0, le=100, description="Overall match percentage")
     breakdown: MatchScoreBreakdown
     
+    # Score Label (human-readable)
+    score_label: str = Field(default="", description="Human-readable label like Excellent, Good, Average, Below Average, Poor")
+    score_grade: str = Field(default="", description="Letter grade like A+, A, B, C, D")
+    score_emoji: str = Field(default="", description="Emoji indicator for the score tier")
+    score_color: str = Field(default="", description="Hex color for the score tier")
+    
     # Recommendation
     recommendation: str = Field(description="Buy/Hold/Don't Add/Avoid")
     action_if_owned: str = Field(description="Hold/Reduce/Exit")

@@ -25,17 +25,21 @@ function RadialMatchScore({ score, size = 200 }) {
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (animatedScore / 100) * circumference;
 
-    // Color based on score
+    // Color based on score — 5 tiers matching backend
     const getColor = () => {
-        if (animatedScore >= 75) return '#10b981'; // green
-        if (animatedScore >= 50) return '#f59e0b'; // amber
-        return '#ef4444'; // red
+        if (animatedScore >= 90) return '#10b981'; // green — Excellent
+        if (animatedScore >= 75) return '#22d3ee'; // cyan — Good
+        if (animatedScore >= 60) return '#f59e0b'; // amber — Average
+        if (animatedScore >= 40) return '#f97316'; // orange — Below Average
+        return '#ef4444'; // red — Poor
     };
 
     const getLabel = () => {
-        if (animatedScore >= 75) return 'Strong Match';
-        if (animatedScore >= 50) return 'Moderate Match';
-        return 'Weak Match';
+        if (animatedScore >= 90) return 'Excellent';
+        if (animatedScore >= 75) return 'Good';
+        if (animatedScore >= 60) return 'Average';
+        if (animatedScore >= 40) return 'Below Average';
+        return 'Poor';
     };
 
     return (

@@ -27,7 +27,7 @@ from app.auth.routes import router as auth_router
 from app.auth.auth import get_current_user_id
 from app.routers.profile import router as profile_router
 from app.routers.history import router as history_router
-from app.demo_cache import get_demo_analysis, is_demo_ticker, DEMO_ANALYSES
+from app.demo_cache import get_demo_analysis, is_demo_ticker, DEMO_ANALYSES, get_demo_comparison, is_demo_comparison
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -583,6 +583,27 @@ def synthesize_comparison(req: CompareRequest):
     )
 
 
+@app.get("/api/compare/demo/{stock1}/{stock2}")
+async def demo_comparison(stock1: str, stock2: str):
+    """
+    Get a pre-cached stock comparison with simulated loading delay.
+    Used for live demos to show the comparison feature without live API calls.
+    Adds an 8-second delay to simulate agent processing (realistic demo effect).
+    """
+    cached = get_demo_comparison(stock1, stock2)
+    if not cached:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No demo comparison available for {stock1} vs {stock2}. "
+                   f"Available demo tickers: {list(DEMO_ANALYSES.keys())}"
+        )
+
+    # Simulate agent processing time for demo effect
+    await asyncio.sleep(8)
+
+    return cached
+
+
 AGENT_STAGES = [
     {"name": "Scout Agent", "description": "Collecting market data & news", "duration": 3},
     {"name": "Quant Agent", "description": "Analyzing fundamentals", "duration": 4},
@@ -645,6 +666,47 @@ def get_rag_stats():
     """Get RAG knowledge base statistics."""
     from app.services.rag_service import rag_service
     return rag_service.get_stats()
+
+
+class BacktestRequest(BaseModel):
+    tickers: List[str]
+    start_date: str
+    end_date: Optional[str] = None
+    interval_months: int = 3
+
+
+@app.post("/api/v1/backtest")
+def run_backtest(req: BacktestRequest):
+    """
+    Run a historical backtest to evaluate system prediction accuracy.
+    
+    Args:
+        tickers: List of stock tickers (e.g. ["TCS.NS", "RELIANCE.NS"])
+        start_date: Start date (YYYY-MM-DD)
+        end_date: End date (YYYY-MM-DD, default: 90 days ago)
+        interval_months: Months between test points (default: 3)
+    
+    Returns:
+        Summary with hit rates, precision, predictions, and system grade
+    """
+    from app.services.backtest_service import backtest_service as bt_service
+    
+    try:
+        summary = bt_service.run_backtest(
+            tickers=req.tickers,
+            start_date=req.start_date,
+            end_date=req.end_date,
+            interval_months=req.interval_months,
+        )
+        
+        from dataclasses import asdict
+        return {
+            "status": "ok",
+            "summary": asdict(summary),
+            "formatted": bt_service.format_results_table(summary),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Backtest failed: {str(e)}")
 
 
 @app.post("/chat/general")

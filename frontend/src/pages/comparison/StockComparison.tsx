@@ -55,7 +55,39 @@ const StockComparison: React.FC = () => {
         setSynthesis(null);
 
         try {
-            // Run both analyses in parallel
+            // First, try the cached demo comparison endpoint (includes simulated delay)
+            try {
+                const demoRes = await axios.get(
+                    `http://localhost:8000/api/compare/demo/${symbol1}/${symbol2}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                if (demoRes.data && demoRes.data.cached) {
+                    // Use cached data
+                    setStock1Data({
+                        symbol: symbol1!,
+                        ...demoRes.data.stock1_data,
+                        recommendation: demoRes.data.stock1_data.match_result?.recommendation,
+                        match_score: demoRes.data.stock1_data.match_score || demoRes.data.stock1_data.match_result?.score
+                    });
+                    setStock2Data({
+                        symbol: symbol2!,
+                        ...demoRes.data.stock2_data,
+                        recommendation: demoRes.data.stock2_data.match_result?.recommendation,
+                        match_score: demoRes.data.stock2_data.match_score || demoRes.data.stock2_data.match_result?.score
+                    });
+                    setSynthesis(demoRes.data.synthesis);
+                    setLoading(false);
+                    return;
+                }
+            } catch (demoErr: any) {
+                // 404 = not a demo pair, fall through to live analysis
+                if (demoErr?.response?.status !== 404) {
+                    console.warn("Demo comparison error:", demoErr);
+                }
+            }
+
+            // Fallback: Run both live analyses in parallel
             const [res1, res2] = await Promise.all([
                 axios.get(`http://localhost:8000/analyze/${symbol1}`, {
                     headers: { Authorization: `Bearer ${token}` }
